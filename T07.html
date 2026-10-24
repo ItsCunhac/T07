@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>T07 Site</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  :root{
+    --void:#000000;
+    --panel:#000000;
+    --panel-2:#000000;
+    --hairline:#000000;
+    --green:#000000;
+    --green-bright:#f8f8f8;
+    --amber:#eea005;
+    --text:#e7f2ec;
+    --text-dim:#8aa89a;
+    --danger:#e5484d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:
+      radial-gradient(ellipse at top, #0f1c2e 0%, var(--void) 55%);
+    color:var(--text); font-family:'Inter',sans-serif;
+    display:flex; align-items:flex-start; justify-content:center; padding:56px 24px; min-height:100vh;
+  }
+  body.mode-auth{ align-items:center; padding-top:24px; padding-bottom:24px;
+  }
+  .wrap{width:100%; max-width:480px; transition:max-width .2s; position:relative; z-index:1;}
+  body.mode-dash .wrap{max-width:1080px;}
+
+  .bg-decor{position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none;}
+  .decor-icon{position:absolute; stroke:var(--green-bright); opacity:.16; filter:drop-shadow(0 0 14px var(--green-bright)) drop-shadow(0 0 30px var(--green-bright));}
+
+  .dash-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:stretch;}
+  @media (max-width:900px){ .dash-grid{grid-template-columns:1fr;} }
+  .card{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:24px;}
+  .stat-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+  .stat-tile{background:var(--panel-2); border:1px solid var(--hairline); border-radius:3px; padding:20px 12px; text-align:center;}
+  .stat-tile b{display:block; font-family:'JetBrains Mono',monospace; font-size:30px; color:var(--green-bright); font-weight:700;}
+  .stat-tile span{font-size:11px; color:var(--text-dim); letter-spacing:1px; text-transform:uppercase;}
+  .brand{display:flex; align-items:baseline; gap:10px; justify-content:flex-start; margin-bottom:18px;}
+  .brand h1{
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:44px; letter-spacing:1px;
+    margin:0; color:var(--text);
+  }
+  .brand h1 span{color:var(--green-bright);}
+  .brand .tick{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase;}
+  .sub{text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:32px; letter-spacing:.3px;}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--hairline); border-radius:4px;
+    padding:28px; position:relative; overflow:hidden;
+  }
+  .panel::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--green-bright), transparent);
+  }
+
+  .tabs{display:flex; border:1px solid var(--hairline); border-radius:3px; overflow:hidden; margin-bottom:24px;}
+  .tab{flex:1; text-align:center; padding:10px; font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; color:var(--text-dim); background:var(--panel-2); transition:.15s;}
+  .tab.active{color:var(--void); background:var(--green-bright); font-weight:600;}
+
+  label{display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); margin:14px 0 6px;}
+  input[type=text],input[type=email],input[type=password]{
+    width:100%; padding:11px 12px; background:var(--panel-2); border:1px solid var(--hairline);
+    border-radius:3px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; transition:.15s;
+  }
+  input:focus{border-color:var(--green-bright); box-shadow:0 0 0 3px rgba(77,157,255,.15);}
+
+  .btn{
+    margin-top:20px; width:100%; padding:12px; border:none; border-radius:3px; cursor:pointer;
+    font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:1.5px; text-transform:uppercase;
+    background:var(--green-bright); color:#06170f; font-weight:600; transition:.15s;
+  }
+  .btn:hover{background:#7cbaff;}
+  .btn:disabled{opacity:.5; cursor:default;}
+  .btn.secondary{background:transparent; border:1px solid var(--hairline); color:var(--text);}
+  .btn.danger{background:var(--danger); color:#fff;}
+
+  .msg{font-size:13px; margin-top:14px; padding:10px 12px; border-radius:3px; display:none;}
+  .msg.error{display:block; background:rgba(229,72,77,.12); color:#ff9497; border:1px solid rgba(229,72,77,.3);}
+  .msg.ok{display:block; background:rgba(77,157,255,.1); color:var(--green-bright); border:1px solid rgba(77,157,255,.3);}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:20px; flex-wrap:wrap;}
+  .navtabs{display:flex; gap:6px;}
+  .navtab{padding:9px 16px; border-radius:3px; font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; color:var(--text-dim); border:1px solid transparent;}
+  .navtab.active{background:var(--panel-2); color:var(--green-bright); border:1px solid var(--hairline);}
+  .navtab:hover{color:var(--text);}
+
+  .team-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:16px;}
+  .team-card{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:20px; text-align:center; cursor:pointer; transition:.15s;}
+  .team-card:hover{border-color:var(--green-bright); transform:translateY(-2px);}
+  .team-shield{width:64px; height:64px; border-radius:4px; object-fit:cover; background:var(--panel-2); border:1px solid var(--hairline); margin:0 auto 12px;}
+  .team-name{font-family:'Oswald',sans-serif; font-size:15px; font-weight:600;}
+  .team-count{font-size:11px; color:var(--text-dim); margin-top:4px; letter-spacing:.5px;}
+
+  .player-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--panel-2);}
+  .player-row img{width:36px; height:36px; border-radius:3px; object-fit:cover; background:var(--panel-2); border:1px solid var(--hairline);}
+  .player-row .pname{flex:1; font-size:14px;}
+  .back-link{color:var(--text-dim); font-size:12px; cursor:pointer; display:inline-block; margin-bottom:16px; letter-spacing:.5px;}
+  .back-link:hover{color:var(--green-bright);}
+
+  .camp-card{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:18px 20px; margin-bottom:12px; cursor:pointer; transition:.15s; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .camp-card:hover{border-color:var(--green-bright);}
+  .camp-title{font-family:'Oswald',sans-serif; font-size:16px; font-weight:600;}
+  .camp-meta{font-size:12px; color:var(--text-dim); margin-top:4px;}
+  .status-pill{font-family:'JetBrains Mono',monospace; font-size:10px; padding:4px 10px; border-radius:12px; letter-spacing:1px; text-transform:uppercase; border:1px solid var(--hairline); color:var(--text-dim); white-space:nowrap;}
+  .status-pill.em_andamento{color:var(--green-bright); border-color:var(--green-bright);}
+  .status-pill.finalizado{color:var(--amber); border-color:var(--amber);}
+  .form-box{border:1px solid var(--hairline); border-radius:3px; padding:18px; margin-bottom:20px; background:var(--panel-2);}
+  .subteam-card{border:1px solid var(--hairline); border-radius:3px; padding:16px; margin-bottom:14px; background:var(--panel-2);}
+
+  .fase-grid{display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start; margin-top:20px;}
+  @media (max-width:900px){ .fase-grid{grid-template-columns:1fr;} }
+  .calendar-panel{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:20px; position:relative; overflow:hidden;}
+  .calendar-panel::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--green-bright), transparent);}
+  .match-card{background:var(--panel-2); border:1px solid var(--hairline); border-radius:4px; padding:12px 14px; margin-bottom:10px;}
+  .match-row{display:flex; align-items:center; gap:10px;}
+  .match-row .badge-team{width:32px; height:32px; border-radius:3px; object-fit:cover; background:var(--panel); border:1px solid var(--hairline); flex-shrink:0;}
+  .match-row .mc-name{font-size:12px; flex:1; text-align:center; line-height:1.25;}
+  .match-row .score{font-family:'JetBrains Mono',monospace; font-size:18px; color:var(--green-bright); min-width:64px; text-align:center; flex-shrink:0;}
+  .match-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:8px;}
+
+  body.mode-dash .wrap{max-width:none; width:100%; display:flex; align-items:stretch; padding:0;}
+  .sidebar{width:230px; flex-shrink:0; background:var(--panel); border-right:1px solid var(--hairline); padding:24px 14px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column;}
+  .sidebar-nav{flex:1;}
+  .sidebar-nav-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:4px; color:var(--text-dim); font-size:13px; letter-spacing:.3px; cursor:pointer; margin-bottom:4px; transition:.15s;}
+  .sidebar-nav-item svg{flex-shrink:0;}
+  .sidebar-nav-item:hover{color:var(--text); background:var(--panel-2);}
+  .sidebar-nav-item.active{background:var(--green); color:#fff;}
+  .sidebar-user{border-top:1px solid var(--hairline); padding-top:16px; margin-top:16px;}
+  .main-content{flex:1; min-width:0; padding:32px 40px; max-width:1100px;}
+
+  .player-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:16px;}
+  .player-card{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:20px; text-align:center;}
+  .player-card img{width:56px; height:56px; border-radius:50%; object-fit:cover; background:var(--panel-2); border:1px solid var(--hairline); margin-bottom:10px;}
+  .player-card .pn{font-family:'Oswald',sans-serif; font-size:15px; font-weight:600;}
+  .player-card .pd{font-size:11px; color:var(--text-dim); margin-bottom:10px;}
+  .player-card .pstats{display:flex; gap:8px;}
+  .player-card .pstats div{flex:1; background:var(--panel-2); border:1px solid var(--hairline); border-radius:3px; padding:8px 4px;}
+  .player-card .pstats b{display:block; font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--green-bright);}
+  .player-card .pstats span{font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;}
+
+  .dash-stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px;}
+  .dash-stat-tile{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:22px;}
+  .dash-stat-tile b{display:block; font-family:'JetBrains Mono',monospace; font-size:28px; color:var(--green-bright);}
+  .dash-stat-tile span{font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;}
+
+  .titulo-card{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:16px 20px; display:flex; align-items:center; gap:14px; margin-bottom:10px;}
+
+  .badge-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px;}
+  .badge-card{background:var(--panel); border:1px solid var(--hairline); border-radius:4px; padding:18px; text-align:center; position:relative; overflow:hidden;}
+  .badge-card::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--green-bright), transparent);}
+  .badge-card.locked{opacity:.35; filter:grayscale(1);}
+  .badge-card .bicon{font-size:36px; margin-bottom:8px;}
+  .badge-card .bname{font-family:'Oswald',sans-serif; font-size:14px; font-weight:600; margin-bottom:4px;}
+  .badge-card .bdesc{font-size:11px; color:var(--text-dim); line-height:1.4;}
+
+  .champion-banner{background:linear-gradient(120deg, var(--panel) 0%, var(--panel-2) 100%); border:1px solid var(--amber); border-radius:4px; padding:28px; display:flex; align-items:center; gap:24px; margin-bottom:24px; flex-wrap:wrap;}
+  .champion-banner img{width:76px; height:76px; border-radius:50%; object-fit:cover; border:2px solid var(--amber);}
+  .champion-tag{display:inline-block; background:rgba(77,157,255,.15); color:var(--amber); border:1px solid var(--amber); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; padding:3px 10px; border-radius:10px; margin-bottom:8px;}
+
+  .bracket-wrap{display:flex; align-items:stretch; gap:32px; overflow-x:auto; padding-bottom:16px;}
+  .bracket-col{display:flex; flex-direction:column; justify-content:center; align-items:stretch; min-width:230px; flex-shrink:0;}
+  .bracket-col-header{font-family:'Oswald',sans-serif; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-dim); text-align:center; margin-bottom:14px;}
+  .bracket-match{background:var(--panel-2); border:1px solid var(--hairline); border-radius:4px; overflow:hidden; position:relative;}
+  .bracket-col:not(:last-child) .bracket-match::after{content:''; position:absolute; right:-32px; top:50%; width:32px; height:1px; background:var(--hairline);}
+  .bracket-serie{font-size:10px; color:var(--text-dim); padding:6px 10px 0; letter-spacing:.5px; text-align:center;}
+  .bracket-team{display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px;}
+  .bracket-team img{width:22px; height:22px; border-radius:2px; object-fit:cover; background:var(--panel); border:1px solid var(--hairline); flex-shrink:0;}
+  .bracket-team .bt-name{flex:1;}
+  .bracket-team .bt-score{font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-dim);}
+  .bracket-team.winner .bt-name{color:var(--green-bright); font-weight:600;}
+  .bracket-team.winner .bt-score{color:var(--green-bright);}
+  .bracket-match-actions{padding:6px 10px 10px; display:flex; gap:6px; justify-content:flex-end;}
+  .who{display:flex; align-items:center; gap:12px;}
+  .avatar{width:44px; height:44px; border-radius:3px; background:var(--panel-2); border:1px solid var(--hairline); object-fit:cover;}
+  .who-name{font-family:'Oswald',sans-serif; font-size:16px; font-weight:600;}
+  .badge{font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 6px; border-radius:2px; letter-spacing:1px;}
+  .badge.admin{background:rgba(77,157,255,.15); color:var(--amber); border:1px solid rgba(77,157,255,.4);}
+  .badge.jogador{background:rgba(138,168,154,.12); color:var(--text-dim); border:1px solid var(--hairline);}
+
+  .section-title{font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--text-dim); margin:28px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--hairline);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; padding:8px 6px; color:var(--text-dim); font-size:10px; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--hairline);}
+  td{padding:9px 6px; border-bottom:1px solid var(--panel-2); vertical-align:middle;}
+  .row-avatar{width:26px; height:26px; border-radius:2px; object-fit:cover; background:var(--panel-2); vertical-align:middle; margin-right:8px;}
+  select.role-select{background:var(--panel-2); color:var(--text); border:1px solid var(--hairline); border-radius:3px; padding:4px 6px; font-size:12px;}
+  .icon-btn{background:none; border:1px solid var(--hairline); color:var(--danger); border-radius:3px; padding:4px 8px; cursor:pointer; font-size:11px;}
+  .icon-btn:hover{background:rgba(229,72,77,.1);}
+
+  .file-row{display:flex; align-items:center; gap:12px; margin-top:14px;}
+  .file-row label.file-btn{margin:0; background:var(--panel-2); border:1px solid var(--hairline); padding:8px 12px; border-radius:3px; cursor:pointer; font-size:12px; text-transform:none; letter-spacing:0;}
+  input[type=file]{display:none;}
+  .hint{font-size:11px; color:var(--text-dim); margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="bg-decor">
+  <svg class="decor-icon" style="top:8%; left:6%; width:150px; transform:rotate(-12deg);" viewBox="0 0 100 60" fill="none" stroke-width="2.2">
+    <rect x="5" y="15" width="90" height="35" rx="17"/>
+    <line x1="27" y1="27" x2="27" y2="39"/>
+    <line x1="21" y1="33" x2="33" y2="33"/>
+    <circle cx="70" cy="27" r="4"/>
+    <circle cx="80" cy="35" r="4"/>
+    <circle cx="60" cy="35" r="4"/>
+    <circle cx="70" cy="43" r="4"/>
+  </svg>
+  <svg class="decor-icon" style="bottom:10%; right:8%; width:120px; transform:rotate(10deg);" viewBox="0 0 100 100" fill="none" stroke-width="2.2">
+    <circle cx="50" cy="60" r="14"/>
+    <line x1="50" y1="46" x2="50" y2="12"/>
+    <circle cx="50" cy="12" r="9"/>
+    <rect x="30" y="80" width="40" height="10" rx="3"/>
+  </svg>
+  <svg class="decor-icon" style="top:60%; left:3%; width:90px; transform:rotate(6deg);" viewBox="0 0 60 60" fill="none" stroke-width="4">
+    <rect x="22" y="2" width="16" height="56"/>
+    <rect x="2" y="22" width="56" height="16"/>
+  </svg>
+  <svg class="decor-icon" style="top:12%; right:12%; width:100px; transform:rotate(-8deg);" viewBox="0 0 100 60" fill="none" stroke-width="2.2">
+    <path d="M20 45 L30 15 L70 15 L80 45"/>
+    <rect x="10" y="42" width="80" height="14" rx="7"/>
+  </svg>
+</div>
+<div class="wrap" id="app"></div>
+
+<script>
+const SUPABASE_URL = "https://oxawxjdoirameukeairx.supabase.co";
+const ANON_KEY = "sb_publishable_npJm8nLVWHUFNk904TPhxg_8jDC-DEX";
+
+let session = null; // { access_token, refresh_token, user }
+let profile = null;
+
+const app = document.getElementById('app');
+
+async function api(path, opts={}) {
+  const headers = Object.assign({
+    'apikey': ANON_KEY,
+    'Content-Type': 'application/json'
+  }, session ? {'Authorization': 'Bearer ' + session.access_token} : {'Authorization': 'Bearer ' + ANON_KEY}, opts.headers || {});
+  const res = await fetch(SUPABASE_URL + path, Object.assign({}, opts, {headers}));
+  let data = null;
+  try { data = await res.json(); } catch(e) {}
+  if (!res.ok) {
+    const errMsg = (data && (data.error_description || data.msg || data.message)) || 'Erro na requisição';
+    throw new Error(errMsg);
+  }
+  return data;
+}
+
+async function loadProfile() {
+  const rows = await api('/rest/v1/profiles?id=eq.' + session.user.id + '&select=*', { headers: {} });
+  profile = rows[0] || null;
+}
+
+function saveSessionToStorage() {
+  try { localStorage.setItem('t90_session', JSON.stringify(session)); } catch(e) {}
+}
+function clearSessionStorage() {
+  try { localStorage.removeItem('t90_session'); } catch(e) {}
+}
+async function tryRestoreSession() {
+  let saved = null;
+  try {
+    const raw = localStorage.getItem('t90_session');
+    if (!raw) return false;
+    saved = JSON.parse(raw);
+  } catch(e) { return false; }
+  try {
+    session = saved;
+    await loadProfile();
+    return true;
+  } catch(e) {
+    try {
+      const data = await api('/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        body: JSON.stringify({ refresh_token: saved.refresh_token })
+      });
+      session = { access_token: data.access_token, refresh_token: data.refresh_token, user: data.user };
+      await loadProfile();
+      saveSessionToStorage();
+      return true;
+    } catch(e2) {
+      clearSessionStorage();
+      session = null;
+      return false;
+    }
+  }
+}
+
+async function doSignup(nickname, discord, email, password) {
+  const data = await api('/auth/v1/signup', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
+  if (!data.access_token) {
+    throw new Error('Verifique seu e-mail para confirmar a conta antes de entrar.');
+  }
+  session = { access_token: data.access_token, refresh_token: data.refresh_token, user: data.user };
+  // create profile row
+  await api('/rest/v1/profiles', {
+    method: 'POST',
+    headers: { 'Prefer': 'return=representation' },
+    body: JSON.stringify({ id: data.user.id, nickname, discord, role: 'jogador' })
+  });
+  await loadProfile();
+  saveSessionToStorage();
+}
+
+async function doLogin(email, password) {
+  const data = await api('/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
+  session = { access_token: data.access_token, refresh_token: data.refresh_token, user: data.user };
+  await loadProfile();
+  saveSessionToStorage();
+}
+
+let currentView = 'dashboard';
+let selectedTeamId = null;
+let selectedCampeonatoId = null;
+let selectedFaseId = null;
+let faseCalendarRodada = null;
+let lastFaseIdForRodada = null;
+let selectedJogadorPerfilId = null;
+
+const FORMATO_LABELS = { liga_mata_mata: 'Liga + Mata-mata', grupos_mata_mata: 'Grupos + Mata-mata', mata_mata_direto: 'Mata-mata Direto' };
+const STATUS_LABELS = { em_montagem: 'Em Montagem', em_andamento: 'Em Andamento', finalizado: 'Finalizado' };
+const FASE_TIPO_LABELS = { grupos: 'Fase de Grupos', liga: 'Liga', mata_mata: 'Mata-mata' };
+const FASE_MATA_LABELS = { oitavas: 'Oitavas de Final', quartas: 'Quartas de Final', semifinal: 'Semifinal', terceiro_lugar: 'Terceiro Lugar', final: 'Final' };
+const FASE_MATA_ORDEM = ['oitavas', 'quartas', 'semifinal', 'terceiro_lugar', 'final'];
+
+function simularProbabilidades(standingsAtual, partidasRestantes, vagas, numSim) {
+  numSim = numSim || 400;
+  if (!standingsAtual.length) return [];
+  const contagem = {};
+  standingsAtual.forEach(s => { contagem[s.id] = { titulo: 0, classifica: 0 }; });
+
+  for (let sim = 0; sim < numSim; sim++) {
+    const tabela = {};
+    standingsAtual.forEach(s => { tabela[s.id] = { id: s.id, pts: s.pts, jitter: Math.random() }; });
+    partidasRestantes.forEach(p => {
+      const r = Math.random();
+      const casa = tabela[p.time_casa_id], fora = tabela[p.time_visitante_id];
+      if (!casa || !fora) return;
+      if (r < 0.4) { casa.pts += 3; }
+      else if (r < 0.65) { casa.pts += 1; fora.pts += 1; }
+      else { fora.pts += 3; }
+    });
+    const ordenado = Object.values(tabela).sort((a,b) => b.pts - a.pts || b.jitter - a.jitter);
+    if (ordenado[0]) contagem[ordenado[0].id].titulo++;
+    ordenado.slice(0, vagas).forEach(t => { if (contagem[t.id]) contagem[t.id].classifica++; });
+  }
+
+  return standingsAtual.map(s => ({
+    id: s.id, nome: s.nome,
+    tituloPct: Math.round((contagem[s.id].titulo / numSim) * 1000) / 10,
+    classificaPct: Math.round((contagem[s.id].classifica / numSim) * 1000) / 10
+  })).sort((a,b) => b.classificaPct - a.classificaPct || b.tituloPct - a.tituloPct);
+}
+
+function probabilidadesTableHtml(dados, title) {
+  if (!dados.length) return '';
+  return `
+    <div class="section-title" style="margin-top:24px;">${title}</div>
+    <table>
+      <thead><tr><th>Time</th><th>Título</th><th>Classificação</th></tr></thead>
+      <tbody>
+        ${dados.map(d => `
+          <tr>
+            <td>${d.nome}</td>
+            <td style="color:var(--amber); font-family:'JetBrains Mono',monospace;">${d.tituloPct}%</td>
+            <td style="color:var(--green-bright); font-family:'JetBrains Mono',monospace;">${d.classificaPct}%</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+const CONQUISTAS_LIST = [
+  { id: 'dedicado', nome: 'Dedicado', desc: 'Jogou 10 partidas oficiais.', icon: '🔹', check: s => s.partidas >= 10 },
+  { id: 'comprometido', nome: 'Comprometido', desc: 'Jogou 25 partidas oficiais.', icon: '🤝', check: s => s.partidas >= 25 },
+  { id: 'veterano_bronze', nome: 'Veterano Bronze', desc: 'Alcançou a marca de 50 partidas jogadas.', icon: '🥉', check: s => s.partidas >= 50 },
+  { id: 'veterano_prata', nome: 'Veterano Prata', desc: 'Alcançou a marca de 100 partidas jogadas.', icon: '🥈', check: s => s.partidas >= 100 },
+  { id: 'veterano_ouro', nome: 'Veterano Ouro', desc: 'Uma lenda em formação com 250 partidas.', icon: '🥇', check: s => s.partidas >= 250 },
+  { id: 'imortal', nome: 'Imortal', desc: 'Marca histórica de 500 partidas jogadas.', icon: '⭐', check: s => s.partidas >= 500 },
+  { id: 'lenda_viva', nome: 'Lenda Viva', desc: 'A lenda dos 1000 jogos. Apenas para os escolhidos.', icon: '👑', check: s => s.partidas >= 1000 },
+  { id: 'goleador', nome: 'Goleador', desc: 'Marcou 50 gols na carreira.', icon: '⚽', check: s => s.gols >= 50 },
+  { id: 'artilheiro', nome: 'Artilheiro', desc: 'Marcou 100 gols na carreira.', icon: '🎯', check: s => s.gols >= 100 },
+  { id: 'carrasco', nome: 'Carrasco', desc: 'Marcou 250 gols na carreira. O terror dos goleiros.', icon: '🔥', check: s => s.gols >= 250 },
+  { id: 'maquina', nome: 'Máquina', desc: 'Marcou 500 gols na carreira. Uma máquina de fazer gols.', icon: '⚙️', check: s => s.gols >= 500 },
+  { id: 'pele', nome: 'Pelé', desc: 'O rei do futebol. Marcou 1000 gols na carreira.', icon: '👕', check: s => s.gols >= 1000 },
+  { id: 'avalanche', nome: 'Avalanche', desc: 'Marcou 7 gols em uma única partida.', icon: '💥', check: s => s.maxGolsPartida >= 7 },
+  { id: 'destruidor', nome: 'Destruidor', desc: 'Marcou 10 gols em uma única partida.', icon: '💣', check: s => s.maxGolsPartida >= 10 },
+  { id: 'campeao', nome: 'Campeão', desc: 'Venceu um campeonato oficial.', icon: '🏆', check: s => s.titulos >= 1 },
+  { id: 'tricampeao', nome: 'Tricampeão', desc: 'Venceu 3 campeonatos oficiais.', icon: '🏆', check: s => s.titulos >= 3 },
+  { id: 'dinastia', nome: 'Dinastia', desc: 'Venceu 5 campeonatos. Dominou o cenário.', icon: '🏆', check: s => s.titulos >= 5 },
+  { id: 'absoluto', nome: 'Absoluto', desc: 'Venceu 10 campeonatos. Inquestionável.', icon: '🏆', check: s => s.titulos >= 10 },
+];
+
+async function getMaxGolsPartida(profileId) {
+  try {
+    const jog = await api('/rest/v1/campeonato_jogadores?profile_id=eq.' + profileId + '&select=id', { headers: {} });
+    if (!jog.length) return 0;
+    const ids = jog.map(j => j.id);
+    const gols = await api('/rest/v1/partida_gols?campeonato_jogador_id=in.(' + ids.join(',') + ')&select=quantidade', { headers: {} });
+    return gols.length ? Math.max(...gols.map(g => g.quantidade)) : 0;
+  } catch(e) { return 0; }
+}
+
+function computeConquistas(stats) {
+  return CONQUISTAS_LIST.map(c => Object.assign({}, c, { unlocked: c.check(stats) }));
+}
+
+function calcPontosRanking(j) {
+  return (j.vitorias||0)*3 + (j.empates||0)*1 - (j.derrotas||0)*2 + (j.titulos||0)*50 + (j.vices||0)*25;
+}
+
+function conquistasGridHtml(lista) {
+  return `<div class="badge-grid">
+    ${lista.map(c => `
+      <div class="badge-card ${c.unlocked ? '' : 'locked'}">
+        <div class="bicon">${c.icon}</div>
+        <div class="bname">${c.nome}</div>
+        <div class="bdesc">${c.desc}</div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function computeStandings(participating, partidas) {
+  const table = {};
+  participating.forEach(pt => {
+    table[pt.id] = { id: pt.id, nome: pt.teams.name, escudo: pt.teams.escudo_url, grupo: pt.grupo, jogos:0, v:0, e:0, d:0, gp:0, gc:0 };
+  });
+  partidas.filter(p => p.status === 'finalizada').forEach(p => {
+    const casa = table[p.time_casa_id], fora = table[p.time_visitante_id];
+    if (!casa || !fora) return;
+    casa.jogos++; fora.jogos++;
+    casa.gp += p.gols_casa; casa.gc += p.gols_visitante;
+    fora.gp += p.gols_visitante; fora.gc += p.gols_casa;
+    if (p.gols_casa > p.gols_visitante) { casa.v++; fora.d++; }
+    else if (p.gols_casa < p.gols_visitante) { fora.v++; casa.d++; }
+    else { casa.e++; fora.e++; }
+  });
+  return Object.values(table).map(t => Object.assign({}, t, { sg: t.gp - t.gc, pts: t.v*3 + t.e })).sort((a,b)=> b.pts-a.pts || b.sg-a.sg || b.gp-a.gp);
+}
+
+function standingsTableHtml(rows, title, vagasClassificacao) {
+  vagasClassificacao = vagasClassificacao || 0;
+  return `
+    <div class="section-title" style="margin-top:24px;">${title}</div>
+    <table>
+      <thead><tr><th>Time</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>PTS</th></tr></thead>
+      <tbody>
+        ${rows.map((r, idx) => `
+          <tr>
+            <td style="${idx < vagasClassificacao ? 'border-left:3px solid var(--green-bright); padding-left:7px;' : ''}">${r.nome}</td>
+            <td>${r.jogos}</td><td>${r.v}</td><td>${r.e}</td><td>${r.d}</td>
+            <td>${r.gp}</td><td>${r.gc}</td><td>${r.sg}</td>
+            <td style="color:var(--green-bright); font-family:'JetBrains Mono',monospace;">${r.pts}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    ${vagasClassificacao ? `<div class="hint" style="margin-top:6px;"><span style="display:inline-block; width:8px; height:8px; background:var(--green-bright); border-radius:2px; margin-right:5px;"></span>Zona de classificação (top ${vagasClassificacao})</div>` : ''}
+  `;
+}
+
+function logout() {
+  session = null; profile = null; currentView = 'dashboard'; selectedTeamId = null;
+  clearSessionStorage();
+  render();
+}
+
+function avatarUrl(path) {
+  if (!path) return 'https://api.dicebear.com/7.x/shapes/svg?seed=' + Math.random();
+  return SUPABASE_URL + '/storage/v1/object/public/avatars/' + path;
+}
+
+function teamLogoUrl(path) {
+  if (!path) return 'https://api.dicebear.com/7.x/identicon/svg?seed=' + Math.random();
+  return SUPABASE_URL + '/storage/v1/object/public/teams/' + path;
+}
+
+// ---------- RENDER: AUTH ----------
+function renderAuth(tab='login') {
+  document.body.className = 'mode-auth';
+  app.innerHTML = `
+    <div class="brand" style="justify-content:center; margin-bottom:24px;"><h1>T<span>07</span></h1></div>
+    <div class="panel">
+      <div class="tabs">
+        <div class="tab ${tab==='login'?'active':''}" data-tab="login">Entrar</div>
+        <div class="tab ${tab==='signup'?'active':''}" data-tab="signup">Cadastrar</div>
+      </div>
+      <div id="formArea"></div>
+      <div class="msg" id="msg"></div>
+    </div>
+  `;
+  app.querySelectorAll('.tab').forEach(t => t.onclick = () => renderAuth(t.dataset.tab));
+
+  const formArea = document.getElementById('formArea');
+  if (tab === 'login') {
+    formArea.innerHTML = `
+      <label>E-mail</label>
+      <input type="email" id="loginEmail" placeholder="seu@email.com">
+      <label>Senha</label>
+      <input type="password" id="loginPass" placeholder="••••••••">
+      <button class="btn" id="loginBtn">Entrar</button>
+    `;
+    document.getElementById('loginBtn').onclick = async () => {
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true; btn.textContent = 'Entrando...';
+      try {
+        await doLogin(document.getElementById('loginEmail').value.trim(), document.getElementById('loginPass').value);
+        render();
+      } catch(e) { showMsg(e.message, 'error'); btn.disabled=false; btn.textContent='Entrar'; }
+    };
+  } else {
+    formArea.innerHTML = `
+      <label>Nickname</label>
+      <input type="text" id="suNick" placeholder="Seu nome no jogo">
+      <label>Usuário do Discord</label>
+      <input type="text" id="suDiscord" placeholder="usuario_discord">
+      <label>E-mail</label>
+      <input type="email" id="suEmail" placeholder="seu@email.com">
+      <label>Senha</label>
+      <input type="password" id="suPass" placeholder="Mínimo 6 caracteres">
+      <button class="btn" id="suBtn">Criar conta</button>
+    `;
+    document.getElementById('suBtn').onclick = async () => {
+      const btn = document.getElementById('suBtn');
+      const nick = document.getElementById('suNick').value.trim();
+      const discord = document.getElementById('suDiscord').value.trim();
+      const email = document.getElementById('suEmail').value.trim();
+      const pass = document.getElementById('suPass').value;
+      if (!nick || !discord || !email || !pass) { showMsg('Preencha todos os campos.', 'error'); return; }
+      btn.disabled = true; btn.textContent = 'Criando...';
+      try {
+        await doSignup(nick, discord, email, pass);
+        render();
+      } catch(e) { showMsg(e.message, 'error'); btn.disabled=false; btn.textContent='Criar conta'; }
+    };
+  }
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  if (!el) return;
+  el.textContent = text; el.className = 'msg ' + type;
+}
+
+const ICON_PERFIL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>';
+const ICON_TIMES = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z"/></svg>';
+const ICON_CAMP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 01-12 0V4z"/><path d="M6 6H4a2 2 0 002 3M18 6h2a2 2 0 01-2 3"/></svg>';
+const ICON_DASHBOARD = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>';
+const ICON_JOGADORES = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3 20c0-3.3 2.7-5.3 6-5.3s6 2 6 5.3"/><path d="M15 15c2.8 0 5 1.8 5 5"/></svg>';
+const ICON_RANKING = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>';
+const ICON_TITULOS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.2-5.4 3.2 1.3-6-4.6-4.1 6.1-.6z"/></svg>';
+const ICON_PARTIDAS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+const ICON_NOTICIAS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>';
+
+function sidebarHtml(active) {
+  return `
+    <div class="sidebar">
+      <div class="brand" style="justify-content:flex-start; margin-bottom:26px;"><h1 style="font-size:22px;">TOTAL<span>90</span></h1></div>
+      <div class="sidebar-nav">
+        <div class="sidebar-nav-item ${active==='dashboard'?'active':''}" data-nav="dashboard">${ICON_DASHBOARD} Dashboard</div>
+        <div class="sidebar-nav-item ${active==='jogadores'?'active':''}" data-nav="jogadores">${ICON_JOGADORES} Jogadores</div>
+        <div class="sidebar-nav-item ${active==='times'?'active':''}" data-nav="times">${ICON_TIMES} Clubes</div>
+        <div class="sidebar-nav-item ${active==='ranking'?'active':''}" data-nav="ranking">${ICON_RANKING} Ranking</div>
+        <div class="sidebar-nav-item ${active==='titulos'?'active':''}" data-nav="titulos">${ICON_TITULOS} Títulos</div>
+        <div class="sidebar-nav-item ${active==='campeonatos'?'active':''}" data-nav="campeonatos">${ICON_CAMP} Temporadas</div>
+        <div class="sidebar-nav-item ${active==='partidas'?'active':''}" data-nav="partidas">${ICON_PARTIDAS} Partidas</div>
+        <div class="sidebar-nav-item ${active==='noticias'?'active':''}" data-nav="noticias">${ICON_NOTICIAS} Notícias</div>
+        <div class="sidebar-nav-item ${active==='perfil'?'active':''}" data-nav="perfil">${ICON_PERFIL} Minha conta</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="who" style="margin-bottom:12px;">
+          <img class="avatar" id="topAvatar" src="${avatarUrl(profile.avatar_url)}" style="width:36px; height:36px;">
+          <div>
+            <div class="who-name" style="font-size:13px;">${profile.nickname}</div>
+            <span class="badge ${profile.role}">${profile.role === 'admin' ? 'ADMINISTRADOR' : 'JOGADOR'}</span>
+          </div>
+        </div>
+        <button class="btn secondary" id="logoutBtn" style="padding:8px;">Sair</button>
+      </div>
+    </div>
+  `;
+}
+
+function wireSidebar() {
+  document.getElementById('logoutBtn').onclick = logout;
+  document.querySelectorAll('.sidebar-nav-item').forEach(t => t.onclick = () => {
+    currentView = t.dataset.nav;
+    renderCurrentView();
+  });
+}
+
+// ---------- RENDER: PERFIL ----------
+async function renderProfileView() {
+  app.innerHTML = sidebarHtml('perfil') + `
+    <div class="main-content">
+    <div class="card" style="text-align:center; margin-bottom:24px;">
+      <img class="avatar" src="${avatarUrl(profile.avatar_url)}" style="width:88px; height:88px; border-radius:50%; margin:0 auto 14px;">
+      <div class="who-name" style="font-size:22px;">${profile.nickname}</div>
+      <div class="hint" style="margin-bottom:6px;"># ${profile.discord}</div>
+      <span class="badge ${profile.role}">${profile.role === 'admin' ? 'ADMINISTRADOR' : 'JOGADOR'}</span>
+      <div class="stat-grid" style="grid-template-columns:repeat(6,1fr); margin-top:22px;">
+        <div class="stat-tile"><b>${profile.vitorias || 0}</b><span>Vitórias</span></div>
+        <div class="stat-tile"><b>${profile.empates || 0}</b><span>Empates</span></div>
+        <div class="stat-tile"><b>${profile.derrotas || 0}</b><span>Derrotas</span></div>
+        <div class="stat-tile"><b>${profile.gols || 0}</b><span>Gols</span></div>
+        <div class="stat-tile"><b>${profile.titulos || 0}</b><span>Títulos</span></div>
+        <div class="stat-tile"><b>${profile.vices || 0}</b><span>Vices</span></div>
+      </div>
+    </div>
+    <div class="dash-grid">
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Meu Perfil</div>
+        <label>Nickname</label>
+        <input type="text" id="editNick" value="${profile.nickname}">
+        <label>Usuário do Discord</label>
+        <input type="text" id="editDiscord" value="${profile.discord}">
+        <div class="file-row">
+          <label class="file-btn">Trocar foto de perfil<input type="file" id="avatarInput" accept="image/*"></label>
+          <span class="hint" id="avatarHint"></span>
+        </div>
+        <button class="btn" id="saveProfileBtn">Salvar alterações</button>
+
+        <div class="section-title">Alterar Senha</div>
+        <label>Nova senha</label>
+        <input type="password" id="newPass" placeholder="Mínimo 6 caracteres">
+        <button class="btn secondary" id="savePassBtn">Atualizar senha</button>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="card" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <div class="section-title" style="margin-top:0;">Maior Vítima</div>
+        <div class="hint">Ainda não há partidas registradas. Assim que os confrontos começarem a acontecer, aqui vai aparecer o jogador que mais perdeu pra você — e em caso de empate no número de derrotas, o que mais tomou gols seus.</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:24px;">
+      <div class="section-title" style="margin-top:0;">Conquistas</div>
+      <div id="conquistasWrap"><div class="hint">Carregando...</div></div>
+    </div>
+    ${profile.role === 'admin' ? '<div class="card" style="margin-top:24px;" id="adminArea"></div>' : ''}
+    </div>
+  `;
+
+  wireSidebar();
+
+  getMaxGolsPartida(session.user.id).then(maxGolsPartida => {
+    const stats = { partidas: (profile.vitorias||0)+(profile.empates||0)+(profile.derrotas||0), gols: profile.gols||0, titulos: profile.titulos||0, maxGolsPartida };
+    document.getElementById('conquistasWrap').innerHTML = conquistasGridHtml(computeConquistas(stats));
+  });
+
+  document.getElementById('avatarInput').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('avatarHint').textContent = 'Enviando...';
+    try {
+      const path = session.user.id + '/' + Date.now() + '_' + file.name;
+      await fetch(SUPABASE_URL + '/storage/v1/object/avatars/' + path, {
+        method: 'POST',
+        headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': file.type },
+        body: file
+      });
+      await api('/rest/v1/profiles?id=eq.' + session.user.id, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({ avatar_url: path })
+      });
+      profile.avatar_url = path;
+      document.getElementById('topAvatar').src = avatarUrl(path);
+      document.getElementById('avatarHint').textContent = 'Foto atualizada.';
+    } catch(err) { document.getElementById('avatarHint').textContent = 'Erro ao enviar: ' + err.message; }
+  };
+
+  document.getElementById('saveProfileBtn').onclick = async () => {
+    try {
+      const nick = document.getElementById('editNick').value.trim();
+      const discord = document.getElementById('editDiscord').value.trim();
+      await api('/rest/v1/profiles?id=eq.' + session.user.id, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({ nickname: nick, discord })
+      });
+      profile.nickname = nick; profile.discord = discord;
+      showMsg('Perfil salvo com sucesso.', 'ok');
+      document.querySelector('.who-name').textContent = nick;
+    } catch(e) { showMsg(e.message, 'error'); }
+  };
+
+  document.getElementById('savePassBtn').onclick = async () => {
+    const pass = document.getElementById('newPass').value;
+    if (pass.length < 6) { showMsg('Senha deve ter no mínimo 6 caracteres.', 'error'); return; }
+    try {
+      await api('/auth/v1/user', { method: 'PUT', body: JSON.stringify({ password: pass }) });
+      showMsg('Senha atualizada com sucesso.', 'ok');
+      document.getElementById('newPass').value = '';
+    } catch(e) { showMsg(e.message, 'error'); }
+  };
+
+  if (profile.role === 'admin') renderAdminPanel();
+}
+
+async function renderAdminPanel() {
+  const area = document.getElementById('adminArea');
+  area.innerHTML = `
+    <div class="section-title" style="margin-top:0;">Painel Administrativo · Usuários</div>
+    <div id="userTableWrap">Carregando...</div>
+    <div class="section-title">Zona de Perigo</div>
+    <div class="form-box" style="border-color:var(--danger);">
+      <div class="hint">Zera as estatísticas de todos os jogadores (vitórias, empates, derrotas, gols, títulos, vices) e apaga todas as notícias. As partidas e temporadas em si não são apagadas. Essa ação não pode ser desfeita.</div>
+      <button class="btn danger" id="zerarStatsBtn" style="max-width:320px; margin-top:12px;">Zerar Estatísticas e Notícias</button>
+      <div class="hint" id="zerarStatsHint"></div>
+    </div>
+  `;
+  document.getElementById('zerarStatsBtn').onclick = async () => {
+    if (!confirm('Isso vai zerar TODAS as estatísticas de TODOS os jogadores (vitórias, empates, derrotas, gols, títulos, vices) e apagar TODAS as notícias. Essa ação não pode ser desfeita. Tem certeza?')) return;
+    if (!confirm('Confirma mesmo? Não tem como voltar atrás depois disso.')) return;
+    const hintEl = document.getElementById('zerarStatsHint');
+    hintEl.textContent = 'Zerando...';
+    try {
+      const todosPerfis = await api('/rest/v1/profiles?select=id', { headers: {} });
+      for (const p of todosPerfis) {
+        await api('/rest/v1/profiles?id=eq.' + p.id, {
+          method: 'PATCH',
+          body: JSON.stringify({ vitorias: 0, empates: 0, derrotas: 0, gols: 0, titulos: 0, vices: 0 })
+        });
+      }
+      await api('/rest/v1/titulos_jogadores?id=not.is.null', { method: 'DELETE' });
+      await api('/rest/v1/noticias?id=not.is.null', { method: 'DELETE' });
+      hintEl.textContent = 'Pronto! Estatísticas e notícias zeradas.';
+      if (profile.id) { profile.vitorias = 0; profile.empates = 0; profile.derrotas = 0; profile.gols = 0; profile.titulos = 0; profile.vices = 0; }
+    } catch(e) { hintEl.textContent = 'Erro: ' + e.message; }
+  };
+  try {
+    const users = await api('/rest/v1/profiles?select=*&order=created_at.desc', { headers: {} });
+    const wrap = document.getElementById('userTableWrap');
+    wrap.innerHTML = `
+      <table>
+        <thead><tr><th>Usuário</th><th>Discord</th><th>Papel</th><th></th></tr></thead>
+        <tbody>
+          ${users.map(u => `
+            <tr data-id="${u.id}">
+              <td><img class="row-avatar" src="${avatarUrl(u.avatar_url)}">${u.nickname}</td>
+              <td>${u.discord}</td>
+              <td>
+                <select class="role-select" data-id="${u.id}">
+                  <option value="jogador" ${u.role==='jogador'?'selected':''}>Jogador</option>
+                  <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                </select>
+              </td>
+              <td><button class="icon-btn" data-del="${u.id}">Excluir</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    wrap.querySelectorAll('.role-select').forEach(sel => {
+      sel.onchange = async () => {
+        try {
+          await api('/rest/v1/profiles?id=eq.' + sel.dataset.id, { method: 'PATCH', body: JSON.stringify({ role: sel.value }) });
+          showMsg('Papel atualizado.', 'ok');
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+    });
+    wrap.querySelectorAll('[data-del]').forEach(btn => {
+      btn.onclick = async () => {
+        if (!confirm('Excluir esta conta permanentemente?')) return;
+        try {
+          await api('/rest/v1/profiles?id=eq.' + btn.dataset.del, { method: 'DELETE' });
+          renderAdminPanel();
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+    });
+  } catch(e) {
+    document.getElementById('userTableWrap').textContent = 'Erro ao carregar usuários: ' + e.message;
+  }
+}
+
+function renderCompleteProfile() {
+  document.body.className = 'mode-auth';
+  app.innerHTML = `
+    <div class="panel" style="max-width:460px; margin:0 auto;">
+      <div class="brand" style="justify-content:center;"><h1>TOTAL<span>90</span></h1></div>
+      <div class="section-title" style="margin-top:20px;">Complete seu cadastro</div>
+      <div class="hint" style="margin-bottom:10px;">Sua conta já existe, só falta o perfil. Preencha para continuar.</div>
+      <label>Nickname</label>
+      <input type="text" id="cpNick" placeholder="Seu nome no jogo">
+      <label>Usuário do Discord</label>
+      <input type="text" id="cpDiscord" placeholder="usuario_discord">
+      <button class="btn" id="cpBtn">Concluir cadastro</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  `;
+  document.getElementById('cpBtn').onclick = async () => {
+    const nick = document.getElementById('cpNick').value.trim();
+    const discord = document.getElementById('cpDiscord').value.trim();
+    if (!nick || !discord) { showMsg('Preencha todos os campos.', 'error'); return; }
+    try {
+      await api('/rest/v1/profiles', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify({ id: session.user.id, nickname: nick, discord, role: 'jogador' })
+      });
+      await loadProfile();
+      render();
+    } catch(e) { showMsg(e.message, 'error'); }
+  };
+}
+
+// ---------- RENDER: TIMES ----------
+async function renderTeamsView() {
+  app.innerHTML = sidebarHtml('times') + `
+    <div class="main-content">
+    <div class="card">
+      <div class="topbar" style="margin-bottom:16px;">
+        <div class="section-title" style="margin:0; border:none; padding:0;">Times</div>
+        ${profile.role === 'admin' ? '<button class="btn secondary" id="newTeamBtn" style="width:auto; margin:0; padding:8px 14px;">+ Novo Time</button>' : ''}
+      </div>
+      <div id="newTeamForm"></div>
+      <input type="text" id="teamSearch" placeholder="Buscar time..." style="max-width:340px; margin-bottom:16px;">
+      <div id="teamGridWrap">Carregando times...</div>
+    </div>
+    </div>
+  `;
+  wireSidebar();
+
+  if (profile.role === 'admin') {
+    document.getElementById('newTeamBtn').onclick = () => {
+      const formEl = document.getElementById('newTeamForm');
+      formEl.innerHTML = formEl.innerHTML ? '' : `
+        <div style="border:1px solid var(--hairline); border-radius:3px; padding:16px; margin-bottom:20px; background:var(--panel-2);">
+          <label>Nome do time</label>
+          <input type="text" id="newTeamName" placeholder="Nome do time">
+          <div class="file-row">
+            <label class="file-btn">Escolher escudo<input type="file" id="newTeamShield" accept="image/*"></label>
+            <span class="hint" id="newTeamHint"></span>
+          </div>
+          <button class="btn" id="createTeamBtn" style="max-width:220px;">Criar time</button>
+        </div>
+      `;
+      if (formEl.innerHTML) {
+        document.getElementById('createTeamBtn').onclick = async () => {
+          const name = document.getElementById('newTeamName').value.trim();
+          if (!name) { document.getElementById('newTeamHint').textContent = 'Digite um nome.'; return; }
+          try {
+            const rows = await api('/rest/v1/teams', {
+              method: 'POST',
+              headers: { 'Prefer': 'return=representation' },
+              body: JSON.stringify({ name })
+            });
+            const team = rows[0];
+            const file = document.getElementById('newTeamShield').files[0];
+            if (file) {
+              const path = team.id + '/' + Date.now() + '_' + file.name;
+              await fetch(SUPABASE_URL + '/storage/v1/object/teams/' + path, {
+                method: 'POST',
+                headers: { 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': file.type },
+                body: file
+              });
+              await api('/rest/v1/teams?id=eq.' + team.id, { method: 'PATCH', body: JSON.stringify({ escudo_url: path }) });
+            }
+            renderTeamsView();
+          } catch(e) { document.getElementById('newTeamHint').textContent = e.message; }
+        };
+      }
+    };
+  }
+
+  try {
+    const teams = await api('/rest/v1/teams?select=*,profiles(count)&order=name.asc', { headers: {} });
+    const wrap = document.getElementById('teamGridWrap');
+    function renderGrid(lista) {
+      if (!lista.length) { wrap.innerHTML = '<div class="hint">Nenhum time encontrado.</div>'; return; }
+      wrap.innerHTML = `<div class="team-grid">
+        ${lista.map(t => `
+          <div class="team-card" data-team="${t.id}">
+            <img class="team-shield" src="${teamLogoUrl(t.escudo_url)}">
+            <div class="team-name">${t.name}</div>
+            <div class="team-count">${t.profiles[0].count} jogador(es)</div>
+          </div>
+        `).join('')}
+      </div>`;
+      wrap.querySelectorAll('.team-card').forEach(c => c.onclick = () => {
+        selectedTeamId = c.dataset.team;
+        currentView = 'team-detail';
+        renderCurrentView();
+      });
+    }
+    if (!teams.length) {
+      wrap.innerHTML = '<div class="hint">Nenhum time cadastrado ainda.</div>';
+      return;
+    }
+    renderGrid(teams);
+    document.getElementById('teamSearch').oninput = (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderGrid(teams.filter(t => t.name.toLowerCase().includes(q)));
+    };
+  } catch(e) {
+    document.getElementById('teamGridWrap').textContent = 'Erro ao carregar times: ' + e.message;
+  }
+}
+
+async function renderTeamDetail(teamId) {
+  app.innerHTML = sidebarHtml('times') + `
+    <div class="main-content">
+    <div class="card">
+      <div class="back-link" id="backToTeams">&larr; Voltar para Times</div>
+      <div id="teamDetailWrap">Carregando...</div>
+      <div class="msg" id="msg"></div>
+    </div>
+    </div>
+  `;
+  wireSidebar();
+  document.getElementById('backToTeams').onclick = () => { currentView = 'times'; renderCurrentView(); };
+
+  try {
+    const teamRows = await api('/rest/v1/teams?id=eq.' + teamId + '&select=*', { headers: {} });
+    const team = teamRows[0];
+    const players = await api('/rest/v1/profiles?team_id=eq.' + teamId + '&select=*&order=nickname.asc', { headers: {} });
+    let unassigned = [];
+    if (profile.role === 'admin') {
+      unassigned = await api('/rest/v1/profiles?team_id=is.null&select=id,nickname&order=nickname.asc', { headers: {} });
+    }
+    const detailWrap = document.getElementById('teamDetailWrap');
+    detailWrap.innerHTML = `
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+        <img class="team-shield" style="margin:0;" src="${teamLogoUrl(team.escudo_url)}">
+        <div>
+          <div class="who-name" style="font-size:20px;">${team.name}</div>
+          <span class="hint">${players.length} jogador(es) no elenco</span>
+        </div>
+        ${profile.role === 'admin' ? `<button class="icon-btn" id="deleteTeamBtn" style="margin-left:auto;">Excluir Time</button>` : ''}
+      </div>
+      ${profile.role === 'admin' ? `
+        <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:20px;">
+          <div style="flex:1;">
+            <label>Adicionar jogador ao time</label>
+            <select id="addPlayerSelect" class="role-select" style="width:100%; padding:9px;">
+              <option value="">Selecione um jogador sem time...</option>
+              ${unassigned.map(u => `<option value="${u.id}">${u.nickname}</option>`).join('')}
+            </select>
+          </div>
+          <button class="btn secondary" id="addPlayerBtn" style="width:auto; margin:0; padding:9px 16px;">Adicionar</button>
+        </div>
+      ` : ''}
+      <div class="section-title" style="margin-top:0;">Elenco</div>
+      ${players.length ? players.map(p => `
+        <div class="player-row">
+          <img src="${avatarUrl(p.avatar_url)}">
+          <span class="pname">${p.nickname}</span>
+          ${profile.role === 'admin' ? `<button class="icon-btn" data-remove="${p.id}">Remover</button>` : ''}
+        </div>
+      `).join('') : '<div class="hint">Nenhum jogador neste time ainda.</div>'}
+    `;
+
+    if (profile.role === 'admin') {
+      document.getElementById('deleteTeamBtn').onclick = async () => {
+        if (!confirm('Excluir "' + team.name + '"? Os jogadores ficarão sem time.')) return;
+        try {
+          await api('/rest/v1/teams?id=eq.' + teamId, { method: 'DELETE' });
+          currentView = 'times'; renderCurrentView();
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+      document.getElementById('addPlayerBtn').onclick = async () => {
+        const pid = document.getElementById('addPlayerSelect').value;
+        if (!pid) return;
+        try {
+          await api('/rest/v1/profiles?id=eq.' + pid, { method: 'PATCH', body: JSON.stringify({ team_id: teamId }) });
+          renderTeamDetail(teamId);
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+      detailWrap.querySelectorAll('[data-remove]').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/rest/v1/profiles?id=eq.' + btn.dataset.remove, { method: 'PATCH', body: JSON.stringify({ team_id: null }) });
+            renderTeamDetail(teamId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+    }
+  } catch(e) {
+    document.getElementById('teamDetailWrap').textContent = 'Erro ao carregar time: ' + e.message;
+  }
+}
+
+// ---------- RENDER: CAMPEONATOS ----------
+async function renderCampeonatosView() {
+  app.innerHTML = sidebarHtml('campeonatos') + `
+    <div class="main-content">
+    <div class="card">
+      <div class="topbar" style="margin-bottom:16px;">
+        <div class="section-title" style="margin:0; border:none; padding:0;">Campeonatos</div>
+        ${profile.role === 'admin' ? '<button class="btn secondary" id="newCampBtn" style="width:auto; margin:0; padding:8px 14px;">+ Novo Campeonato</button>' : ''}
+      </div>
+      <div id="newCampForm"></div>
+      <input type="text" id="campSearch" placeholder="Buscar temporada..." style="max-width:340px; margin-bottom:16px;">
+      <div id="campListWrap">Carregando campeonatos...</div>
+    </div>
+    </div>
+  `;
+  wireSidebar();
+
+  if (profile.role === 'admin') {
+    document.getElementById('newCampBtn').onclick = () => {
+      const formEl = document.getElementById('newCampForm');
+      if (formEl.innerHTML) { formEl.innerHTML = ''; return; }
+      formEl.innerHTML = `
+        <div class="form-box">
+          <label>Nome / Tema da edição</label>
+          <input type="text" id="campNome" placeholder="Ex: Edição 5 - Verão">
+          <label>Jogo</label>
+          <select id="campJogo" class="role-select" style="width:100%; padding:9px;">
+            <option value="PES 2021">PES 2021</option>
+            <option value="PES 2017">PES 2017</option>
+            <option value="FIFA 14">FIFA 14</option>
+            <option value="Outro">Outro</option>
+          </select>
+          <div id="campJogoOutroWrap" style="display:none;">
+            <label>Qual jogo?</label>
+            <input type="text" id="campJogoOutro" placeholder="Nome do jogo">
+          </div>
+          <button class="btn" id="createCampBtn" style="max-width:240px;">Criar campeonato</button>
+          <div class="hint" id="campFormHint"></div>
+        </div>
+      `;
+      document.getElementById('campJogo').onchange = (e) => {
+        document.getElementById('campJogoOutroWrap').style.display = e.target.value === 'Outro' ? 'block' : 'none';
+      };
+      document.getElementById('createCampBtn').onclick = async () => {
+        const nome = document.getElementById('campNome').value.trim();
+        const jogo = document.getElementById('campJogo').value;
+        const jogoOutro = document.getElementById('campJogoOutro').value.trim();
+        if (!nome) { document.getElementById('campFormHint').textContent = 'Digite o nome/tema da edição.'; return; }
+        const payload = { nome_edicao: nome, jogo, jogo_outro: jogo === 'Outro' ? jogoOutro : null };
+        try {
+          await api('/rest/v1/campeonatos', { method: 'POST', body: JSON.stringify(payload) });
+          renderCampeonatosView();
+        } catch(e) { document.getElementById('campFormHint').textContent = e.message; }
+      };
+    };
+  }
+
+  try {
+    const camps = await api('/rest/v1/campeonatos?select=*&order=created_at.desc', { headers: {} });
+    const wrap = document.getElementById('campListWrap');
+    function renderLista(lista) {
+      if (!lista.length) { wrap.innerHTML = '<div class="hint">Nenhuma temporada encontrada.</div>'; return; }
+      wrap.innerHTML = lista.map(c => `
+        <div class="camp-card" data-camp="${c.id}">
+          <div>
+            <div class="camp-title">${c.nome_edicao}</div>
+            <div class="camp-meta">${c.jogo === 'Outro' ? c.jogo_outro : c.jogo}</div>
+          </div>
+          <span class="status-pill ${c.status}">${STATUS_LABELS[c.status]}</span>
+        </div>
+      `).join('');
+      wrap.querySelectorAll('.camp-card').forEach(c => c.onclick = () => {
+        selectedCampeonatoId = c.dataset.camp;
+        currentView = 'campeonato-detail';
+        renderCurrentView();
+      });
+    }
+    if (!camps.length) { wrap.innerHTML = '<div class="hint">Nenhum campeonato criado ainda.</div>'; return; }
+    renderLista(camps);
+    document.getElementById('campSearch').oninput = (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderLista(camps.filter(c => c.nome_edicao.toLowerCase().includes(q) || (c.jogo||'').toLowerCase().includes(q) || (c.jogo_outro||'').toLowerCase().includes(q)));
+    };
+  } catch(e) {
+    document.getElementById('campListWrap').textContent = 'Erro ao carregar campeonatos: ' + e.message;
+  }
+}
+
+async function renderCampeonatoDetail(campId) {
+  app.innerHTML = sidebarHtml('campeonatos') + `
+    <div class="main-content">
+    <div class="card">
+      <div class="back-link" id="backToCamps">&larr; Voltar para Campeonatos</div>
+      <div id="campDetailWrap">Carregando...</div>
+      <div class="msg" id="msg"></div>
+    </div>
+    </div>
+  `;
+  wireSidebar();
+  document.getElementById('backToCamps').onclick = () => { currentView = 'campeonatos'; renderCurrentView(); };
+
+  try {
+    const campRows = await api('/rest/v1/campeonatos?id=eq.' + campId + '&select=*', { headers: {} });
+    const camp = campRows[0];
+    const participating = await api('/rest/v1/campeonato_times?campeonato_id=eq.' + campId + '&select=*,teams(*)&order=grupo.asc.nullslast', { headers: {} });
+    const allTeams = await api('/rest/v1/teams?select=id,name&order=name.asc', { headers: {} });
+    const usedTeamIds = participating.map(p => p.team_id);
+    const availableTeams = allTeams.filter(t => !usedTeamIds.includes(t.id));
+    const allJogadores = await api('/rest/v1/campeonato_jogadores?campeonato_id=eq.' + campId + '&select=*,profiles(id,nickname,avatar_url)', { headers: {} });
+    const allProfiles = await api('/rest/v1/profiles?select=id,nickname&order=nickname.asc', { headers: {} });
+    const usedProfileIds = allJogadores.map(j => j.profile_id);
+    const availableProfiles = allProfiles.filter(p => !usedProfileIds.includes(p.id));
+
+    const detailWrap = document.getElementById('campDetailWrap');
+    detailWrap.innerHTML = `
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:8px;">
+        <div>
+          <div class="who-name" style="font-size:20px;">${camp.nome_edicao}</div>
+          <div class="camp-meta">${camp.jogo === 'Outro' ? camp.jogo_outro : camp.jogo} · <span class="status-pill ${camp.status}">${STATUS_LABELS[camp.status]}</span></div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          ${profile.role === 'admin' && camp.status !== 'finalizado' ? '<button class="btn secondary" id="encerrarCampBtn" style="width:auto; margin:0; padding:8px 14px;">Encerrar Temporada</button>' : ''}
+          ${profile.role === 'admin' ? '<button class="icon-btn" id="deleteCampBtn">Excluir Campeonato</button>' : ''}
+        </div>
+      </div>
+      <div id="encerrarCampForm"></div>
+
+      ${profile.role === 'admin' ? `
+        <div class="section-title">Adicionar Time Participante</div>
+        <div class="form-box">
+          <label>Time</label>
+          <select id="addTeamSelect" class="role-select" style="width:100%; padding:9px;">
+            <option value="">Selecione um time...</option>
+            ${availableTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+          </select>
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn secondary" id="addTeamBtn" style="max-width:200px;">Adicionar Time</button>
+            ${availableTeams.length ? `<button class="btn" id="addAllTeamsBtn" style="max-width:260px;">+ Adicionar Todos (${availableTeams.length})</button>` : ''}
+          </div>
+          <div class="hint" id="addTeamHint"></div>
+        </div>
+      ` : ''}
+
+      <div class="section-title">Times Participantes (${participating.length})</div>
+      ${!participating.length ? '<div class="hint">Nenhum time adicionado ainda.</div>' : participating.map(pt => {
+        const roster = allJogadores.filter(j => j.campeonato_time_id === pt.id);
+        return `
+        <div class="subteam-card">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+            <img class="team-shield" style="width:36px; height:36px; margin:0;" src="${teamLogoUrl(pt.teams.escudo_url)}">
+            <div style="flex:1;">
+              <b style="font-family:'Oswald',sans-serif;">${pt.teams.name}</b>
+            </div>
+            ${profile.role === 'admin' ? `<button class="icon-btn" data-remove-team="${pt.id}">Remover</button>` : ''}
+          </div>
+          ${roster.map(r => `
+            <div class="player-row">
+              <img src="${avatarUrl(r.profiles.avatar_url)}">
+              <span class="pname">${r.profiles.nickname}</span>
+              ${profile.role === 'admin' ? `<button class="icon-btn" data-remove-player="${r.id}">Remover</button>` : ''}
+            </div>
+          `).join('') || '<div class="hint" style="padding:6px 0;">Nenhum jogador escalado.</div>'}
+          ${profile.role === 'admin' ? `
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <select class="role-select add-player-select" data-ct="${pt.id}" style="flex:1; padding:8px;">
+                <option value="">Escalar jogador...</option>
+                ${availableProfiles.map(p => `<option value="${p.id}">${p.nickname}</option>`).join('')}
+              </select>
+              <button class="btn secondary add-player-btn" data-ct="${pt.id}" style="width:auto; margin:0; padding:8px 14px;">Escalar</button>
+            </div>
+          ` : ''}
+        </div>
+      `}).join('')}
+
+      <div class="section-title">Fases</div>
+      ${profile.role === 'admin' ? `<button class="btn secondary" id="newFaseBtn" style="width:auto; margin-bottom:14px; padding:8px 14px;">+ Nova Fase</button>` : ''}
+      <div id="newFaseForm"></div>
+      <div id="fasesListWrap">Carregando fases...</div>
+    `;
+
+    if (profile.role === 'admin') {
+      document.getElementById('deleteCampBtn').onclick = async () => {
+        if (!confirm('Excluir o campeonato "' + camp.nome_edicao + '"? Essa ação não pode ser desfeita.')) return;
+        try {
+          await api('/rest/v1/campeonatos?id=eq.' + campId, { method: 'DELETE' });
+          currentView = 'campeonatos'; renderCurrentView();
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+      const encerrarBtn = document.getElementById('encerrarCampBtn');
+      if (encerrarBtn) encerrarBtn.onclick = () => {
+        const formEl = document.getElementById('encerrarCampForm');
+        if (formEl.innerHTML) { formEl.innerHTML = ''; return; }
+        formEl.innerHTML = `
+          <div class="form-box">
+            <div class="hint">Ao confirmar, todos os jogadores escalados no time campeão ganham +1 título (e aparecem no Hall da Fama), e os do vice ganham +1 vice. A temporada é marcada como finalizada.</div>
+            <label>Time Campeão</label>
+            <select id="timeCampeaoSelect" class="role-select" style="width:100%; padding:9px;">
+              <option value="">Selecione...</option>
+              ${participating.map(pt => `<option value="${pt.id}">${pt.teams.name}</option>`).join('')}
+            </select>
+            <label>Time Vice (opcional)</label>
+            <select id="timeViceSelect" class="role-select" style="width:100%; padding:9px;">
+              <option value="">Nenhum</option>
+              ${participating.map(pt => `<option value="${pt.id}">${pt.teams.name}</option>`).join('')}
+            </select>
+            <button class="btn" id="confirmEncerrarBtn" style="max-width:220px; margin-top:14px;">Confirmar e Encerrar</button>
+            <div class="hint" id="encerrarHint"></div>
+          </div>
+        `;
+        document.getElementById('confirmEncerrarBtn').onclick = async () => {
+          const campeaoId = document.getElementById('timeCampeaoSelect').value;
+          const viceId = document.getElementById('timeViceSelect').value;
+          if (!campeaoId) { document.getElementById('encerrarHint').textContent = 'Selecione o time campeão.'; return; }
+          try {
+            await registrarTitulos(campId, camp.nome_edicao, campeaoId, viceId || null, allJogadores);
+            renderCampeonatoDetail(campId);
+          } catch(e) { document.getElementById('encerrarHint').textContent = e.message; }
+        };
+      };
+      const addTeamBtn = document.getElementById('addTeamBtn');
+      if (addTeamBtn) addTeamBtn.onclick = async () => {
+        const teamId = document.getElementById('addTeamSelect').value;
+        if (!teamId) return;
+        try {
+          await api('/rest/v1/campeonato_times', {
+            method: 'POST',
+            body: JSON.stringify({ campeonato_id: campId, team_id: teamId })
+          });
+          renderCampeonatoDetail(campId);
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+      const addAllTeamsBtn = document.getElementById('addAllTeamsBtn');
+      if (addAllTeamsBtn) addAllTeamsBtn.onclick = async () => {
+        if (!confirm('Adicionar todos os ' + availableTeams.length + ' clubes disponíveis a esta temporada?')) return;
+        try {
+          for (const t of availableTeams) {
+            await api('/rest/v1/campeonato_times', { method: 'POST', body: JSON.stringify({ campeonato_id: campId, team_id: t.id }) });
+          }
+          renderCampeonatoDetail(campId);
+        } catch(e) { document.getElementById('addTeamHint').textContent = e.message; }
+      };
+      detailWrap.querySelectorAll('[data-remove-team]').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/rest/v1/campeonato_times?id=eq.' + btn.dataset.removeTeam, { method: 'DELETE' });
+            renderCampeonatoDetail(campId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+      detailWrap.querySelectorAll('[data-remove-player]').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/rest/v1/campeonato_jogadores?id=eq.' + btn.dataset.removePlayer, { method: 'DELETE' });
+            renderCampeonatoDetail(campId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+      detailWrap.querySelectorAll('.add-player-btn').forEach(btn => {
+        btn.onclick = async () => {
+          const sel = detailWrap.querySelector('.add-player-select[data-ct="' + btn.dataset.ct + '"]');
+          const profileId = sel.value;
+          if (!profileId) return;
+          try {
+            await api('/rest/v1/campeonato_jogadores', {
+              method: 'POST',
+              body: JSON.stringify({ campeonato_id: campId, campeonato_time_id: btn.dataset.ct, profile_id: profileId })
+            });
+            renderCampeonatoDetail(campId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+
+      document.getElementById('newFaseBtn').onclick = () => {
+        const formEl = document.getElementById('newFaseForm');
+        if (formEl.innerHTML) { formEl.innerHTML = ''; return; }
+        formEl.innerHTML = `
+          <div class="form-box">
+            <label>Nome da fase</label>
+            <input type="text" id="faseNome" placeholder="Ex: Fase de Grupos">
+            <label>Tipo</label>
+            <select id="faseTipo" class="role-select" style="width:100%; padding:9px;">
+              <option value="grupos">Fase de Grupos</option>
+              <option value="liga">Liga (todos contra todos)</option>
+              <option value="mata_mata">Mata-mata</option>
+            </select>
+            <div id="faseModoWrap">
+              <label>Modo de confronto</label>
+              <select id="faseModoConfronto" class="role-select" style="width:100%; padding:9px;">
+                <option value="unico">1 jogo decide</option>
+                <option value="ida_volta">2 jogos (ida e volta) decidem</option>
+              </select>
+            </div>
+            <div id="faseGruposWrap" style="display:none;">
+              <label>Quantidade de grupos</label>
+              <input type="text" id="faseQtdGrupos" placeholder="Ex: 4">
+              <label>Times por grupo</label>
+              <input type="text" id="faseTimesPorGrupo" placeholder="Ex: 4">
+              <label>Classificação para a próxima fase</label>
+              <select id="faseClassificacao" class="role-select" style="width:100%; padding:9px;">
+                <option value="automatica">Automática (2 melhores de cada grupo)</option>
+                <option value="manual">Manual (ADM escolhe)</option>
+              </select>
+            </div>
+            <button class="btn" id="createFaseBtn" style="max-width:200px;">Criar Fase</button>
+            <div class="hint" id="faseFormHint"></div>
+          </div>
+        `;
+        document.getElementById('faseTipo').onchange = (e) => {
+          document.getElementById('faseGruposWrap').style.display = e.target.value === 'grupos' ? 'block' : 'none';
+        };
+        document.getElementById('createFaseBtn').onclick = async () => {
+          const nome = document.getElementById('faseNome').value.trim();
+          const tipo = document.getElementById('faseTipo').value;
+          if (!nome) { document.getElementById('faseFormHint').textContent = 'Digite o nome da fase.'; return; }
+          const payload = { campeonato_id: campId, nome, tipo, ordem: 1, modo_confronto: document.getElementById('faseModoConfronto').value };
+          if (tipo === 'grupos') {
+            payload.qtd_grupos = parseInt(document.getElementById('faseQtdGrupos').value) || null;
+            payload.times_por_grupo = parseInt(document.getElementById('faseTimesPorGrupo').value) || null;
+            payload.classificacao = document.getElementById('faseClassificacao').value;
+          }
+          try {
+            await api('/rest/v1/fases', { method: 'POST', body: JSON.stringify(payload) });
+            renderCampeonatoDetail(campId);
+          } catch(e) { document.getElementById('faseFormHint').textContent = e.message; }
+        };
+      };
+    }
+
+    try {
+      const fases = await api('/rest/v1/fases?campeonato_id=eq.' + campId + '&select=*,fase_times(count)&order=ordem.asc,created_at.asc', { headers: {} });
+      const fasesWrap = document.getElementById('fasesListWrap');
+      if (!fases.length) { fasesWrap.innerHTML = '<div class="hint">Nenhuma fase criada ainda.</div>'; }
+      else {
+        fasesWrap.innerHTML = fases.map(f => `
+          <div class="camp-card" data-fase="${f.id}">
+            <div>
+              <div class="camp-title">${f.nome}</div>
+              <div class="camp-meta">${FASE_TIPO_LABELS[f.tipo]}${f.tipo === 'grupos' ? ' · ' + (f.qtd_grupos||'?') + ' grupos' : ''} · ${f.fase_times[0].count} time(s)</div>
+            </div>
+            ${profile.role === 'admin' ? `<button class="icon-btn" data-delete-fase="${f.id}">Excluir</button>` : ''}
+          </div>
+        `).join('');
+        fasesWrap.querySelectorAll('.camp-card').forEach(c => {
+          c.onclick = (ev) => {
+            if (ev.target.closest('[data-delete-fase]')) return;
+            selectedFaseId = c.dataset.fase;
+            currentView = 'fase-detail';
+            renderCurrentView();
+          };
+        });
+        if (profile.role === 'admin') {
+          fasesWrap.querySelectorAll('[data-delete-fase]').forEach(btn => {
+            btn.onclick = async () => {
+              if (!confirm('Excluir esta fase e todas as suas partidas?')) return;
+              try {
+                await api('/rest/v1/fases?id=eq.' + btn.dataset.deleteFase, { method: 'DELETE' });
+                renderCampeonatoDetail(campId);
+              } catch(e) { showMsg(e.message, 'error'); }
+            };
+          });
+        }
+      }
+    } catch(e) {
+      document.getElementById('fasesListWrap').textContent = 'Erro ao carregar fases: ' + e.message;
+    }
+  } catch(e) {
+    document.getElementById('campDetailWrap').textContent = 'Erro ao carregar campeonato: ' + e.message;
+  }
+}
+
+async function avancarVencedorMataMata(campeonatoId, faseId, faseModoConfronto, faseAtual, targetId, targetSlot, vencedorId, perdedorId, campNomeEdicao, allJogadoresList) {
+  if (targetId) {
+    const slotField = targetSlot === 'casa' ? 'time_casa_id' : 'time_visitante_id';
+    await api('/rest/v1/partidas?id=eq.' + targetId, { method: 'PATCH', body: JSON.stringify({ [slotField]: vencedorId }) });
+    if (faseModoConfronto === 'ida_volta') {
+      const targetRow = (await api('/rest/v1/partidas?id=eq.' + targetId + '&select=*', { headers: {} }))[0];
+      const oppositeField = targetSlot === 'casa' ? 'time_visitante_id' : 'time_casa_id';
+      await api('/rest/v1/partidas?fase_id=eq.' + targetRow.fase_id + '&fase=eq.' + targetRow.fase + '&rodada=eq.' + targetRow.rodada + '&perna=eq.volta', { method: 'PATCH', body: JSON.stringify({ [oppositeField]: vencedorId }) });
+    }
+  } else if (faseAtual === 'final') {
+    await registrarTitulos(campeonatoId, campNomeEdicao, vencedorId, perdedorId, allJogadoresList);
+  }
+}
+
+async function registrarTitulos(campeonatoId, nomeEdicao, campeaoTimeId, viceTimeId, allJogadoresList) {
+  const campeaoRoster = allJogadoresList.filter(j => j.campeonato_time_id === campeaoTimeId);
+  for (const r of campeaoRoster) {
+    await api('/rest/v1/titulos_jogadores', { method: 'POST', body: JSON.stringify({ profile_id: r.profile_id, campeonato_id: campeonatoId, nome_edicao: nomeEdicao, tipo: 'campeao' }) });
+    const prof = await api('/rest/v1/profiles?id=eq.' + r.profile_id + '&select=titulos', { headers: {} });
+    await api('/rest/v1/profiles?id=eq.' + r.profile_id, { method: 'PATCH', body: JSON.stringify({ titulos: (prof[0].titulos||0) + 1 }) });
+  }
+  if (viceTimeId) {
+    const viceRoster = allJogadoresList.filter(j => j.campeonato_time_id === viceTimeId);
+    for (const r of viceRoster) {
+      await api('/rest/v1/titulos_jogadores', { method: 'POST', body: JSON.stringify({ profile_id: r.profile_id, campeonato_id: campeonatoId, nome_edicao: nomeEdicao, tipo: 'vice' }) });
+      const prof = await api('/rest/v1/profiles?id=eq.' + r.profile_id + '&select=vices', { headers: {} });
+      await api('/rest/v1/profiles?id=eq.' + r.profile_id, { method: 'PATCH', body: JSON.stringify({ vices: (prof[0].vices||0) + 1 }) });
+    }
+  }
+  await api('/rest/v1/campeonatos?id=eq.' + campeonatoId, { method: 'PATCH', body: JSON.stringify({ status: 'finalizado' }) });
+}
+
+async function gerarChaveamentoBracket(campeonatoId, faseId, pares, modoConfronto) {
+  const n = pares.length * 2;
+  const roundNamesKey = { 16: 'oitavas', 8: 'quartas', 4: 'semifinal', 2: 'final' };
+  let roundsChain = [];
+  let count = n;
+  while (count >= 2) { roundsChain.push(roundNamesKey[count] || ('fase-' + count)); count = count / 2; }
+
+  let nextRoundIda = null;
+  for (let r = roundsChain.length - 1; r >= 0; r--) {
+    const roundName = roundsChain[r];
+    const modoRodada = roundName === 'final' ? 'unico' : modoConfronto;
+    const numSlots = n / Math.pow(2, r + 1);
+    const createdIdaThisRound = [];
+    for (let i = 0; i < numSlots; i++) {
+      const casaId = (r === 0 && pares[i]) ? pares[i][0] : null;
+      const foraId = (r === 0 && pares[i]) ? pares[i][1] : null;
+      const idaPayload = { campeonato_id: campeonatoId, fase_id: faseId, fase: roundName, rodada: i + 1, time_casa_id: casaId, time_visitante_id: foraId };
+      if (modoRodada === 'ida_volta') idaPayload.perna = 'ida';
+      if (nextRoundIda) {
+        idaPayload.proxima_partida_id = nextRoundIda[Math.floor(i / 2)].id;
+        idaPayload.proxima_partida_slot = i % 2 === 0 ? 'casa' : 'visitante';
+      }
+      const criadaIda = (await api('/rest/v1/partidas', { method: 'POST', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify(idaPayload) }))[0];
+      createdIdaThisRound.push(criadaIda);
+
+      if (modoRodada === 'ida_volta') {
+        const voltaPayload = { campeonato_id: campeonatoId, fase_id: faseId, fase: roundName, rodada: i + 1, perna: 'volta', time_casa_id: foraId, time_visitante_id: casaId };
+        if (nextRoundIda) {
+          voltaPayload.proxima_partida_id = nextRoundIda[Math.floor(i / 2)].id;
+          voltaPayload.proxima_partida_slot = i % 2 === 0 ? 'casa' : 'visitante';
+        }
+        await api('/rest/v1/partidas', { method: 'POST', body: JSON.stringify(voltaPayload) });
+      }
+    }
+    nextRoundIda = createdIdaThisRound;
+  }
+}
+
+async function applyMatchResult(rosterCasa, rosterFora, golsCasa, golsVisitante, scorers) {
+  const allIds = [...new Set([...rosterCasa.map(r => r.profile_id), ...rosterFora.map(r => r.profile_id)])];
+  if (!allIds.length) return;
+  const profilesData = await api('/rest/v1/profiles?id=in.(' + allIds.join(',') + ')&select=id,vitorias,empates,derrotas,gols', { headers: {} });
+  const pMap = {};
+  profilesData.forEach(p => pMap[p.id] = Object.assign({}, p));
+
+  let resultCasa = golsCasa > golsVisitante ? 'v' : (golsCasa < golsVisitante ? 'd' : 'e');
+  let resultFora = resultCasa === 'v' ? 'd' : (resultCasa === 'd' ? 'v' : 'e');
+
+  rosterCasa.forEach(r => {
+    const p = pMap[r.profile_id]; if (!p) return;
+    if (resultCasa === 'v') p.vitorias++; else if (resultCasa === 'e') p.empates++; else p.derrotas++;
+  });
+  rosterFora.forEach(r => {
+    const p = pMap[r.profile_id]; if (!p) return;
+    if (resultFora === 'v') p.vitorias++; else if (resultFora === 'e') p.empates++; else p.derrotas++;
+  });
+  scorers.forEach(s => { const p = pMap[s.profile_id]; if (!p) return; p.gols += s.quantidade; });
+
+  for (const id of Object.keys(pMap)) {
+    const p = pMap[id];
+    await api('/rest/v1/profiles?id=eq.' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ vitorias: p.vitorias, empates: p.empates, derrotas: p.derrotas, gols: p.gols })
+    });
+  }
+}
+
+async function renderFaseDetail(faseId) {
+  app.innerHTML = sidebarHtml('campeonatos') + `
+    <div class="main-content">
+    <div class="card">
+      <div class="back-link" id="backToCamp">&larr; Voltar para o Campeonato</div>
+      <div id="faseDetailWrap">Carregando...</div>
+      <div class="msg" id="msg"></div>
+    </div>
+    </div>
+  `;
+  wireSidebar();
+
+  try {
+    const faseRows = await api('/rest/v1/fases?id=eq.' + faseId + '&select=*', { headers: {} });
+    const fase = faseRows[0];
+    document.getElementById('backToCamp').onclick = () => { currentView = 'campeonato-detail'; selectedCampeonatoId = fase.campeonato_id; renderCurrentView(); };
+    const campRows = await api('/rest/v1/campeonatos?id=eq.' + fase.campeonato_id + '&select=nome_edicao', { headers: {} });
+    const campNomeEdicao = campRows[0].nome_edicao;
+
+    const faseTimes = await api('/rest/v1/fase_times?fase_id=eq.' + faseId + '&select=*,campeonato_times(*,teams(*))&order=grupo.asc.nullslast', { headers: {} });
+    const allCampTeams = await api('/rest/v1/campeonato_times?campeonato_id=eq.' + fase.campeonato_id + '&select=*,teams(*)&order=teams(name).asc', { headers: {} });
+    const usedCtIds = faseTimes.map(ft => ft.campeonato_time_id);
+    const availableCampTeams = allCampTeams.filter(ct => !usedCtIds.includes(ct.id));
+    const allJogadores = await api('/rest/v1/campeonato_jogadores?campeonato_id=eq.' + fase.campeonato_id + '&select=*,profiles(id,nickname,avatar_url)', { headers: {} });
+    const partidas = await api('/rest/v1/partidas?fase_id=eq.' + faseId + '&select=*&order=created_at.asc', { headers: {} });
+    const faseFilha = fase.tipo !== 'mata_mata' ? (await api('/rest/v1/fases?fase_origem_id=eq.' + faseId + '&select=id,nome', { headers: {} }))[0] : null;
+    const todasFinalizadas = partidas.length > 0 && partidas.every(p => p.status === 'finalizada');
+
+    if (lastFaseIdForRodada !== faseId) { faseCalendarRodada = null; lastFaseIdForRodada = faseId; }
+    const rodadasDisponiveis = [...new Set(partidas.map(p => p.rodada).filter(r => r != null))].sort((a,b) => a-b);
+    const partidasSemRodada = partidas.filter(p => p.rodada == null);
+    if (faseCalendarRodada === null && rodadasDisponiveis.length) faseCalendarRodada = rodadasDisponiveis[0];
+    if (faseCalendarRodada !== null && !rodadasDisponiveis.includes(faseCalendarRodada)) faseCalendarRodada = rodadasDisponiveis.length ? rodadasDisponiveis[0] : null;
+    const partidasExibidas = rodadasDisponiveis.length ? partidas.filter(p => p.rodada === faseCalendarRodada) : partidas;
+
+    const standingsInput = faseTimes.map(ft => ({ id: ft.campeonato_time_id, teams: ft.campeonato_times.teams, grupo: ft.grupo }));
+    const standings = computeStandings(standingsInput, partidas);
+    const grupos = [...new Set(faseTimes.map(ft => ft.grupo).filter(g => g != null))].sort((a,b)=>a-b);
+
+    let probabilidadesHtml = '';
+    if (fase.tipo !== 'mata_mata' && faseTimes.length >= 2) {
+      const partidasRestantes = partidas.filter(p => p.status === 'agendada');
+      if (grupos.length) {
+        probabilidadesHtml = grupos.map(g => {
+          const standingsGrupo = standings.filter(s => s.grupo === g);
+          const restantesGrupo = partidasRestantes.filter(p => {
+            const casaFt = faseTimes.find(ft => ft.campeonato_time_id === p.time_casa_id);
+            return casaFt && casaFt.grupo === g;
+          });
+          const dados = simularProbabilidades(standingsGrupo, restantesGrupo, 2, 400);
+          return probabilidadesTableHtml(dados, 'Probabilidades · ' + ((fase.grupo_nomes && fase.grupo_nomes[g]) || ('Grupo ' + g)));
+        }).join('');
+      } else {
+        const dados = simularProbabilidades(standings, partidasRestantes, Math.min(4, standings.length), 400);
+        probabilidadesHtml = probabilidadesTableHtml(dados, 'Probabilidades');
+      }
+    }
+
+    function matchCardHtml(p) {
+      const casaFt = faseTimes.find(ft => ft.campeonato_time_id === p.time_casa_id);
+      const foraFt = faseTimes.find(ft => ft.campeonato_time_id === p.time_visitante_id);
+      return `
+        <div class="match-card">
+          <div class="match-row">
+            <img class="badge-team" src="${teamLogoUrl(casaFt ? casaFt.campeonato_times.teams.escudo_url : null)}">
+            <span class="mc-name">${casaFt ? casaFt.campeonato_times.teams.name : '?'}</span>
+            <span class="score">${p.status==='finalizada' ? (p.gols_casa + ' - ' + p.gols_visitante) : 'vs'}</span>
+            <span class="mc-name">${foraFt ? foraFt.campeonato_times.teams.name : '?'}</span>
+            <img class="badge-team" src="${teamLogoUrl(foraFt ? foraFt.campeonato_times.teams.escudo_url : null)}">
+          </div>
+          ${p.wo ? '<div class="hint" style="text-align:center; margin-top:4px;">W.O.</div>' : ''}
+          ${profile.role === 'admin' && p.status === 'agendada' ? `
+            <div class="match-actions">
+              <button class="btn secondary toggle-finalize-btn" data-partida="${p.id}" style="width:auto; margin:0; padding:6px 12px;">Registrar Resultado</button>
+              <button class="icon-btn" data-delete-partida="${p.id}">Excluir</button>
+            </div>
+          ` : ''}
+          <div id="finalizeForm-${p.id}"></div>
+        </div>
+      `;
+    }
+
+    function bracketTeamHtml(ft, gols, isWinner) {
+      return `
+        <div class="bracket-team ${isWinner ? 'winner' : ''}">
+          <img src="${teamLogoUrl(ft ? ft.campeonato_times.teams.escudo_url : null)}">
+          <span class="bt-name">${ft ? ft.campeonato_times.teams.name : '?'}</span>
+          <span class="bt-score">${gols == null ? '-' : gols}</span>
+        </div>
+      `;
+    }
+
+    let matchesSectionHtml = '';
+    if (fase.tipo === 'mata_mata') {
+      const roundsPresent = FASE_MATA_ORDEM.filter(r => partidas.some(p => p.fase === r));
+      if (!partidas.length) {
+        matchesSectionHtml = '<div class="hint">Nenhuma partida criada ainda.</div>';
+      } else {
+        matchesSectionHtml = `<div class="bracket-wrap">` + roundsPresent.map(roundKey => {
+          const roundMatches = partidas.filter(p => p.fase === roundKey).sort((a,b) => (a.rodada||0)-(b.rodada||0));
+          const series = [...new Set(roundMatches.map(p => p.rodada || 0))];
+          return `
+            <div class="bracket-col">
+              <div class="bracket-col-header">${FASE_MATA_LABELS[roundKey]}</div>
+              ${series.map(serieNum => {
+                const legs = roundMatches.filter(p => (p.rodada || 0) === serieNum);
+                if (legs.length < 2) {
+                  const p = legs[0];
+                  const casaFt = faseTimes.find(ft => ft.campeonato_time_id === p.time_casa_id);
+                  const foraFt = faseTimes.find(ft => ft.campeonato_time_id === p.time_visitante_id);
+                  const casaWin = p.status === 'finalizada' && p.gols_casa > p.gols_visitante;
+                  const foraWin = p.status === 'finalizada' && p.gols_visitante > p.gols_casa;
+                  return `
+                    <div class="bracket-match" style="margin-bottom:18px;">
+                      <div class="bracket-serie">Série ${serieNum}${p.wo ? ' · W.O.' : ''}</div>
+                      ${bracketTeamHtml(casaFt, p.status==='finalizada' ? p.gols_casa : null, casaWin)}
+                      ${bracketTeamHtml(foraFt, p.status==='finalizada' ? p.gols_visitante : null, foraWin)}
+                      ${profile.role === 'admin' && p.status === 'agendada' ? `
+                        <div class="bracket-match-actions">
+                          <button class="btn secondary toggle-finalize-btn" data-partida="${p.id}" style="width:auto; margin:0; padding:5px 10px; font-size:11px;">Resultado</button>
+                          <button class="icon-btn" data-delete-partida="${p.id}">Excluir</button>
+                        </div>
+                      ` : ''}
+                      <div id="finalizeForm-${p.id}"></div>
+                    </div>
+                  `;
+                }
+                const ida = legs.find(l => l.perna === 'ida') || legs[0];
+                const volta = legs.find(l => l.perna === 'volta') || legs[1];
+                const idaFt1 = faseTimes.find(ft => ft.campeonato_time_id === ida.time_casa_id);
+                const idaFt2 = faseTimes.find(ft => ft.campeonato_time_id === ida.time_visitante_id);
+                let agregadoHtml = '';
+                if (ida.status === 'finalizada' && volta.status === 'finalizada') {
+                  const totalTimeA = ida.gols_casa + volta.gols_visitante;
+                  const totalTimeB = ida.gols_visitante + volta.gols_casa;
+                  agregadoHtml = `<div class="hint" style="text-align:center; padding:6px 0; border-top:1px solid var(--hairline); margin-top:4px;">Agregado: <b style="color:${totalTimeA > totalTimeB ? 'var(--green-bright)' : 'var(--text)'};">${totalTimeA}</b> - <b style="color:${totalTimeB > totalTimeA ? 'var(--green-bright)' : 'var(--text)'};">${totalTimeB}</b></div>`;
+                }
+                function legRowHtml(leg, label) {
+                  const casaFt = faseTimes.find(ft => ft.campeonato_time_id === leg.time_casa_id);
+                  const foraFt = faseTimes.find(ft => ft.campeonato_time_id === leg.time_visitante_id);
+                  return `
+                    <div class="hint" style="margin-top:6px; text-align:center;">${label}${leg.wo ? ' · W.O.' : ''}</div>
+                    <div class="match-row" style="gap:6px; justify-content:center; padding:0 10px;">
+                      <span class="mc-name" style="font-size:11px;">${casaFt ? casaFt.campeonato_times.teams.name : '?'}</span>
+                      <span class="score" style="font-size:13px; min-width:44px;">${leg.status==='finalizada' ? (leg.gols_casa + '-' + leg.gols_visitante) : 'vs'}</span>
+                      <span class="mc-name" style="font-size:11px;">${foraFt ? foraFt.campeonato_times.teams.name : '?'}</span>
+                    </div>
+                    ${profile.role === 'admin' && leg.status === 'agendada' ? `
+                      <div class="bracket-match-actions" style="justify-content:center;">
+                        <button class="btn secondary toggle-finalize-btn" data-partida="${leg.id}" style="width:auto; margin:0; padding:4px 8px; font-size:10px;">Resultado</button>
+                        <button class="icon-btn" data-delete-partida="${leg.id}">Excluir</button>
+                      </div>
+                    ` : ''}
+                    <div id="finalizeForm-${leg.id}"></div>
+                  `;
+                }
+                return `
+                  <div class="bracket-match" style="margin-bottom:18px; padding-bottom:10px;">
+                    <div class="bracket-serie">Série ${serieNum} · ${idaFt1 ? idaFt1.campeonato_times.teams.name : '?'} x ${idaFt2 ? idaFt2.campeonato_times.teams.name : '?'}</div>
+                    ${legRowHtml(ida, 'Ida')}
+                    ${legRowHtml(volta, 'Volta')}
+                    ${agregadoHtml}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }).join('') + `</div>`;
+      }
+    } else {
+      matchesSectionHtml = `
+        ${rodadasDisponiveis.length ? `
+          <div style="display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:14px;">
+            <button class="icon-btn" id="prevRodadaBtn">‹</button>
+            <b style="font-family:'Oswald',sans-serif; letter-spacing:1px;">RODADA ${faseCalendarRodada}</b>
+            <button class="icon-btn" id="nextRodadaBtn">›</button>
+          </div>
+        ` : ''}
+        ${!partidas.length ? '<div class="hint">Nenhuma partida criada ainda.</div>' : partidasExibidas.map(matchCardHtml).join('')}
+        ${partidasSemRodada.length ? `
+          <div class="hint" style="margin:16px 0 8px;">Partidas manuais sem rodada definida</div>
+          ${partidasSemRodada.map(matchCardHtml).join('')}
+        ` : ''}
+      `;
+    }
+
+    const wrap = document.getElementById('faseDetailWrap');
+    wrap.innerHTML = `
+      <div style="margin-bottom:8px;">
+        <div class="who-name" style="font-size:20px;">${fase.nome}</div>
+        <div class="camp-meta">${FASE_TIPO_LABELS[fase.tipo]}${fase.tipo === 'grupos' ? ' · ' + (fase.qtd_grupos||'?') + ' grupos' : ''}</div>
+      </div>
+
+      ${profile.role === 'admin' && fase.tipo === 'liga' ? `
+        <div class="section-title">Adicionar Time à Fase</div>
+        <div class="form-box">
+          <label>Time</label>
+          <select id="addFaseTeamSelect" class="role-select" style="width:100%; padding:9px;">
+            <option value="">Selecione um time...</option>
+            ${availableCampTeams.map(ct => `<option value="${ct.id}">${ct.teams.name}</option>`).join('')}
+          </select>
+          <button class="btn secondary" id="addFaseTeamBtn" style="max-width:200px; margin-top:14px;">Adicionar</button>
+          <div class="hint" id="addFaseTeamHint"></div>
+        </div>
+      ` : ''}
+
+      ${fase.tipo === 'mata_mata' ? `
+        ${!fase.fase_origem_id && !partidas.length && profile.role === 'admin' ? `
+          <div class="calendar-panel" style="margin-top:20px;">
+            <div class="section-title" style="margin-top:0;">Montar Chaveamento</div>
+            <div class="hint">Selecione os times da edição que vão disputar este mata-mata. A fase inicial (oitavas, quartas, semifinal ou final) é definida sozinha pela quantidade escolhida — precisa ser 2, 4, 8 ou 16 times.</div>
+            <div style="max-height:220px; overflow-y:auto; margin:14px 0; border:1px solid var(--hairline); border-radius:3px; padding:10px;">
+              ${allCampTeams.map(ct => `
+                <label style="display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;">
+                  <input type="checkbox" class="mm-team-check" value="${ct.id}" data-nome="${ct.teams.name}">
+                  ${ct.teams.name}
+                </label>
+              `).join('')}
+            </div>
+            <button class="btn secondary" id="mmDefinirConfrontosBtn">Definir Confrontos</button>
+            <div id="mmConfrontosForm"></div>
+            <div class="hint" id="mmHint"></div>
+          </div>
+        ` : `
+          <div class="calendar-panel" style="margin-top:20px;">
+            ${matchesSectionHtml}
+          </div>
+        `}
+      ` : `
+        ${fase.tipo === 'grupos' ? `
+          <div class="section-title" style="display:flex; align-items:center; justify-content:space-between;">
+            <span>Grupos e Times</span>
+            ${profile.role === 'admin' ? '<button class="btn secondary" id="addGrupoBtn" style="width:auto; margin:0; padding:6px 12px; font-size:11px;">+ Adicionar Grupo</button>' : ''}
+          </div>
+          <div class="team-grid" style="grid-template-columns:repeat(auto-fill, minmax(240px,1fr));">
+            ${Array.from({length: fase.qtd_grupos || 1}, (_, i) => i + 1).map(g => {
+              const doGrupo = faseTimes.filter(ft => ft.grupo === g);
+              const usadosIds = faseTimes.map(ft => ft.campeonato_time_id);
+              const disponiveis = availableCampTeams.filter(ct => !usadosIds.includes(ct.id));
+              const nomeGrupo = (fase.grupo_nomes && fase.grupo_nomes[g]) || ('Grupo ' + g);
+              return `
+                <div class="subteam-card" style="margin-bottom:0;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                    <b class="grupo-titulo" data-grupo="${g}" style="font-family:'Oswald',sans-serif;">${nomeGrupo}</b>
+                    ${profile.role === 'admin' ? `<button class="icon-btn edit-grupo-btn" data-grupo="${g}" style="border-color:transparent; color:var(--text-dim); padding:2px 6px;">✎</button>` : ''}
+                  </div>
+                  <div class="edit-grupo-form" data-grupo="${g}"></div>
+                  ${doGrupo.length ? doGrupo.map(ft => `
+                    <div class="player-row">
+                      <img src="${teamLogoUrl(ft.campeonato_times.teams.escudo_url)}">
+                      <span class="pname">${ft.campeonato_times.teams.name}</span>
+                      ${profile.role === 'admin' ? `<button class="icon-btn" data-remove-fase-team="${ft.id}">Remover</button>` : ''}
+                    </div>
+                  `).join('') : '<div class="hint" style="padding:6px 0;">Nenhum time.</div>'}
+                  ${profile.role === 'admin' && disponiveis.length ? `
+                    <div style="display:flex; gap:6px; margin-top:10px;">
+                      <select class="role-select add-group-team-select" data-grupo="${g}" style="flex:1; padding:7px; font-size:12px;">
+                        <option value="">Adicionar time...</option>
+                        ${disponiveis.map(ct => `<option value="${ct.id}">${ct.teams.name}</option>`).join('')}
+                      </select>
+                      <button class="btn secondary add-group-team-btn" data-grupo="${g}" style="width:auto; margin:0; padding:7px 10px; font-size:12px;">+</button>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : `
+          <div class="section-title">Times na Fase (${faseTimes.length})</div>
+          ${!faseTimes.length ? '<div class="hint">Nenhum time nesta fase ainda.</div>' : faseTimes.map(ft => `
+            <div class="player-row">
+              <img src="${teamLogoUrl(ft.campeonato_times.teams.escudo_url)}">
+              <span class="pname">${ft.campeonato_times.teams.name}</span>
+              ${profile.role === 'admin' ? `<button class="icon-btn" data-remove-fase-team="${ft.id}">Remover</button>` : ''}
+            </div>
+          `).join('')}
+        `}
+
+        ${faseFilha ? `
+          <div class="section-title">Mata-mata</div>
+          <div class="camp-card" data-fase="${faseFilha.id}"><div><div class="camp-title">${faseFilha.nome}</div><div class="camp-meta">Gerado a partir desta fase</div></div></div>
+        ` : (profile.role === 'admin' ? `
+          <div class="section-title">Finalizar Fase</div>
+          <div class="form-box">
+            <div class="hint">${todasFinalizadas ? 'Todas as partidas desta fase foram finalizadas. Você pode gerar o mata-mata agora.' : 'Ainda há partidas pendentes nesta fase — finalize todas antes de gerar o mata-mata (ou gere mesmo assim, por sua conta e risco).'}</div>
+            <button class="btn" id="gerarMataMataBtn" style="margin-top:10px;">Finalizar Fase e Gerar Mata-mata</button>
+            <div id="gerarMataMataForm"></div>
+          </div>
+        ` : '')}
+
+        <div class="fase-grid">
+          <div>
+            ${grupos.length ? grupos.map(g => standingsTableHtml(standings.filter(s => s.grupo === g), 'Classificação · ' + ((fase.grupo_nomes && fase.grupo_nomes[g]) || ('Grupo ' + g)), 2)).join('') : (faseTimes.length ? standingsTableHtml(standings, 'Classificação', Math.min(4, standings.length)) : '<div class="hint">Adicione times à fase para ver a classificação.</div>')}
+            ${faseTimes.length ? probabilidadesHtml : ''}
+          </div>
+
+          <div class="calendar-panel">
+            <div class="section-title" style="margin-top:0;">Calendário</div>
+
+            ${profile.role === 'admin' && faseTimes.length >= 2 ? `
+              <div class="form-box">
+                <div class="hint">Gera os confrontos ${fase.tipo === 'grupos' ? 'de cada grupo' : 'entre os times da fase'} no modo "${fase.modo_confronto === 'ida_volta' ? 'ida e volta' : '1 confronto'}". Só cria o que ainda não existe.</div>
+                <button class="btn" id="gerarPartidasBtn" style="margin-top:10px;">Gerar Partidas</button>
+                <div class="hint" id="gerarPartidasHint"></div>
+              </div>
+            ` : ''}
+
+            ${profile.role === 'admin' && faseTimes.length >= 2 ? `
+              <div class="form-box">
+                <label>Time Casa</label>
+                <select id="matchCasa" class="role-select" style="width:100%; padding:8px;">
+                  ${faseTimes.map(ft => `<option value="${ft.campeonato_time_id}">${ft.campeonato_times.teams.name}</option>`).join('')}
+                </select>
+                <label>Time Visitante</label>
+                <select id="matchVisitante" class="role-select" style="width:100%; padding:8px;">
+                  ${faseTimes.map(ft => `<option value="${ft.campeonato_time_id}">${ft.campeonato_times.teams.name}</option>`).join('')}
+                </select>
+                <label>Rodada (opcional)</label>
+                <input type="text" id="matchRodada" placeholder="Ex: 1">
+                <button class="btn secondary" id="createMatchBtn" style="margin-top:10px;">+ Partida Manual</button>
+                <div class="hint" id="matchFormHint"></div>
+              </div>
+            ` : ''}
+
+            ${matchesSectionHtml}
+          </div>
+        </div>
+      `}
+    `;
+
+    const faseFilhaCard = wrap.querySelector('[data-fase]');
+    if (faseFilhaCard) faseFilhaCard.onclick = () => { selectedFaseId = faseFilhaCard.dataset.fase; renderFaseDetail(faseFilhaCard.dataset.fase); };
+
+    if (rodadasDisponiveis.length) {
+      const idx = rodadasDisponiveis.indexOf(faseCalendarRodada);
+      const prevBtn = document.getElementById('prevRodadaBtn');
+      const nextBtn = document.getElementById('nextRodadaBtn');
+      if (prevBtn) prevBtn.onclick = () => {
+        if (idx > 0) { faseCalendarRodada = rodadasDisponiveis[idx - 1]; renderFaseDetail(faseId); }
+      };
+      if (nextBtn) nextBtn.onclick = () => {
+        if (idx < rodadasDisponiveis.length - 1) { faseCalendarRodada = rodadasDisponiveis[idx + 1]; renderFaseDetail(faseId); }
+      };
+    }
+
+    if (profile.role === 'admin') {
+      const addFaseTeamBtn = document.getElementById('addFaseTeamBtn');
+      if (addFaseTeamBtn) addFaseTeamBtn.onclick = async () => {
+        const ctId = document.getElementById('addFaseTeamSelect').value;
+        if (!ctId) return;
+        const grupoInput = document.getElementById('addFaseTeamGrupo');
+        try {
+          await api('/rest/v1/fase_times', {
+            method: 'POST',
+            body: JSON.stringify({ fase_id: faseId, campeonato_time_id: ctId, grupo: grupoInput ? (parseInt(grupoInput.value) || null) : null })
+          });
+          renderFaseDetail(faseId);
+        } catch(e) { document.getElementById('addFaseTeamHint').textContent = e.message; }
+      };
+
+      const addGrupoBtn = document.getElementById('addGrupoBtn');
+      if (addGrupoBtn) addGrupoBtn.onclick = async () => {
+        try {
+          await api('/rest/v1/fases?id=eq.' + faseId, { method: 'PATCH', body: JSON.stringify({ qtd_grupos: (fase.qtd_grupos || 0) + 1 }) });
+          renderFaseDetail(faseId);
+        } catch(e) { showMsg(e.message, 'error'); }
+      };
+
+      wrap.querySelectorAll('.edit-grupo-btn').forEach(btn => {
+        btn.onclick = () => {
+          const g = btn.dataset.grupo;
+          const formEl = wrap.querySelector('.edit-grupo-form[data-grupo="' + g + '"]');
+          if (formEl.innerHTML) { formEl.innerHTML = ''; return; }
+          const nomeAtual = (fase.grupo_nomes && fase.grupo_nomes[g]) || ('Grupo ' + g);
+          formEl.innerHTML = `
+            <div style="display:flex; gap:6px; margin:8px 0;">
+              <input type="text" class="edit-grupo-input" value="${nomeAtual}" style="flex:1; padding:6px; font-size:12px;">
+              <button class="btn secondary save-grupo-nome-btn" data-grupo="${g}" style="width:auto; margin:0; padding:6px 10px; font-size:12px;">Salvar</button>
+            </div>
+          `;
+          formEl.querySelector('.save-grupo-nome-btn').onclick = async () => {
+            const novoNome = formEl.querySelector('.edit-grupo-input').value.trim();
+            if (!novoNome) return;
+            try {
+              const novoMapa = Object.assign({}, fase.grupo_nomes || {}, { [g]: novoNome });
+              await api('/rest/v1/fases?id=eq.' + faseId, { method: 'PATCH', body: JSON.stringify({ grupo_nomes: novoMapa }) });
+              renderFaseDetail(faseId);
+            } catch(e) { showMsg(e.message, 'error'); }
+          };
+        };
+      });
+
+      wrap.querySelectorAll('.add-group-team-btn').forEach(btn => {
+        btn.onclick = async () => {
+          const sel = wrap.querySelector('.add-group-team-select[data-grupo="' + btn.dataset.grupo + '"]');
+          const ctId = sel.value;
+          if (!ctId) return;
+          try {
+            await api('/rest/v1/fase_times', {
+              method: 'POST',
+              body: JSON.stringify({ fase_id: faseId, campeonato_time_id: ctId, grupo: parseInt(btn.dataset.grupo) })
+            });
+            renderFaseDetail(faseId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+
+      const mmDefinirBtn = document.getElementById('mmDefinirConfrontosBtn');
+      if (mmDefinirBtn) mmDefinirBtn.onclick = () => {
+        const checked = [...wrap.querySelectorAll('.mm-team-check:checked')].map(c => ({ id: c.value, nome: c.dataset.nome }));
+        const n = checked.length;
+        const formEl = document.getElementById('mmConfrontosForm');
+        if (n < 2 || (n & (n - 1)) !== 0) { document.getElementById('mmHint').textContent = 'Selecione uma quantidade de times que seja 2, 4, 8 ou 16.'; formEl.innerHTML = ''; return; }
+        document.getElementById('mmHint').textContent = '';
+        const roundNamesByCount = { 16: 'Oitavas de Final', 8: 'Quartas de Final', 4: 'Semifinal', 2: 'Final' };
+        formEl.innerHTML = `
+          <div style="margin-top:14px;">
+            <div class="hint">Fase inicial: <b>${roundNamesByCount[n]}</b>. Escolha o confronto de cada série (cada time só pode aparecer uma vez):</div>
+            ${Array.from({length: n/2}, (_, i) => i).map(i => `
+              <div style="display:flex; gap:8px; align-items:center; margin:10px 0;">
+                <span class="hint" style="width:56px; flex-shrink:0;">Série ${i+1}</span>
+                <select class="role-select mm-pair-select" data-pair="${i}" style="flex:1; padding:7px;">
+                  <option value="">Time casa...</option>
+                  ${checked.map(t => `<option value="${t.id}">${t.nome}</option>`).join('')}
+                </select>
+                <select class="role-select mm-pair-select2" data-pair="${i}" style="flex:1; padding:7px;">
+                  <option value="">Time visitante...</option>
+                  ${checked.map(t => `<option value="${t.id}">${t.nome}</option>`).join('')}
+                </select>
+              </div>
+            `).join('')}
+            <button class="btn" id="mmGerarBtn" style="margin-top:14px;">Gerar Chaveamento</button>
+          </div>
+        `;
+        document.getElementById('mmGerarBtn').onclick = async () => {
+          const pares = [];
+          const usados = new Set();
+          let ok = true;
+          for (let i = 0; i < n / 2; i++) {
+            const casa = formEl.querySelector('.mm-pair-select[data-pair="' + i + '"]').value;
+            const fora = formEl.querySelector('.mm-pair-select2[data-pair="' + i + '"]').value;
+            if (!casa || !fora || casa === fora || usados.has(casa) || usados.has(fora)) { ok = false; break; }
+            usados.add(casa); usados.add(fora);
+            pares.push([casa, fora]);
+          }
+          if (!ok) { document.getElementById('mmHint').textContent = 'Confira os confrontos: cada time só pode aparecer uma vez, e casa/visitante não podem ser o mesmo time.'; return; }
+          try {
+            for (const t of checked) {
+              await api('/rest/v1/fase_times', { method: 'POST', body: JSON.stringify({ fase_id: faseId, campeonato_time_id: t.id }) });
+            }
+            await gerarChaveamentoBracket(fase.campeonato_id, faseId, pares, fase.modo_confronto);
+            renderFaseDetail(faseId);
+          } catch(e) { document.getElementById('mmHint').textContent = e.message; }
+        };
+      };
+
+      const gerarMataMataBtn = document.getElementById('gerarMataMataBtn');
+      if (gerarMataMataBtn) gerarMataMataBtn.onclick = () => {
+        const formEl = document.getElementById('gerarMataMataForm');
+        if (formEl.innerHTML) { formEl.innerHTML = ''; return; }
+        let sugestoes = [];
+        if (fase.tipo === 'grupos') {
+          grupos.forEach(g => {
+            const doGrupo = standings.filter(s => s.grupo === g);
+            doGrupo.slice(0, 2).forEach((s, idx) => sugestoes.push({ id: s.id, nome: s.nome, grupo: g, colocacao: idx + 1 }));
+          });
+        } else {
+          standings.slice(0, Math.min(8, standings.length)).forEach((s, idx) => sugestoes.push({ id: s.id, nome: s.nome, grupo: null, colocacao: idx + 1 }));
+        }
+        formEl.innerHTML = `
+          <div style="margin-top:14px;">
+            <div class="hint">Marque os times classificados (sugestão pré-marcada: ${fase.tipo === 'grupos' ? '2 melhores de cada grupo' : 'top colocados da tabela'}). O total precisa ser uma potência de 2 (2, 4, 8 ou 16).</div>
+            ${standings.map(s => `
+              <label style="display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13px;">
+                <input type="checkbox" class="qualifica-check" value="${s.id}" ${sugestoes.some(x => x.id === s.id) ? 'checked' : ''}>
+                ${s.nome}${s.grupo ? ' · Grupo ' + s.grupo : ''} (${s.pts} pts)
+              </label>
+            `).join('')}
+            <label>Forma de definir os confrontos</label>
+            <select id="pareamentoSelect" class="role-select" style="width:100%; padding:9px;">
+              ${fase.tipo === 'grupos' && grupos.length >= 2 && grupos.length % 2 === 0 ? '<option value="cruzamento">Cruzamento entre grupos (1º de um grupo x 2º do outro)</option>' : ''}
+              <option value="sorteio">Sorteio aleatório</option>
+            </select>
+            <label>Modo de confronto do mata-mata</label>
+            <select id="mmModoSelect" class="role-select" style="width:100%; padding:9px;">
+              <option value="unico">1 jogo decide</option>
+              <option value="ida_volta">2 jogos (ida e volta) decidem</option>
+            </select>
+            <button class="btn" id="confirmGerarMataMataBtn" style="margin-top:14px;">Gerar Chaveamento</button>
+            <div class="hint" id="gerarMataMataHint"></div>
+          </div>
+        `;
+        document.getElementById('confirmGerarMataMataBtn').onclick = async () => {
+          const hintEl = document.getElementById('gerarMataMataHint');
+          const modoConfrontoMM = document.getElementById('mmModoSelect').value;
+          const checked = [...formEl.querySelectorAll('.qualifica-check:checked')].map(c => c.value);
+          const n = checked.length;
+          if (n < 2 || (n & (n - 1)) !== 0) { hintEl.textContent = 'A quantidade de classificados precisa ser 2, 4, 8 ou 16.'; return; }
+          const pareamento = document.getElementById('pareamentoSelect').value;
+          let qualificados = standings.filter(s => checked.includes(s.id));
+
+          let pares = [];
+          if (pareamento === 'cruzamento') {
+            const porGrupo = {};
+            qualificados.forEach(q => { if (!porGrupo[q.grupo]) porGrupo[q.grupo] = []; porGrupo[q.grupo].push(q); });
+            const gruposOrdenados = Object.keys(porGrupo).sort((a,b)=>a-b);
+            for (let i = 0; i < gruposOrdenados.length; i += 2) {
+              const gA = porGrupo[gruposOrdenados[i]], gB = porGrupo[gruposOrdenados[i+1]];
+              if (!gA || !gB) continue;
+              pares.push([gA[0], gB[1] || gB[0]]);
+              pares.push([gB[0], gA[1] || gA[0]]);
+            }
+          } else {
+            const shuffled = [...qualificados].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < shuffled.length; i += 2) pares.push([shuffled[i], shuffled[i+1]]);
+          }
+          pares = pares.filter(p => p[0] && p[1]).map(p => [p[0].id, p[1].id]);
+          if (pares.length !== n / 2) { hintEl.textContent = 'Não foi possível montar os confrontos (confira o cruzamento por grupos). Tentando sorteio...'; }
+
+          try {
+            const novaFaseRows = await api('/rest/v1/fases', {
+              method: 'POST',
+              headers: { 'Prefer': 'return=representation' },
+              body: JSON.stringify({ campeonato_id: fase.campeonato_id, nome: 'Mata-mata', tipo: 'mata_mata', ordem: (fase.ordem||1)+1, fase_origem_id: faseId, modo_confronto: modoConfrontoMM })
+            });
+            const novaFase = novaFaseRows[0];
+            for (const timeId of checked) {
+              await api('/rest/v1/fase_times', { method: 'POST', body: JSON.stringify({ fase_id: novaFase.id, campeonato_time_id: timeId }) });
+            }
+
+            await gerarChaveamentoBracket(fase.campeonato_id, novaFase.id, pares, modoConfrontoMM);
+
+            selectedFaseId = novaFase.id;
+            renderFaseDetail(novaFase.id);
+          } catch(e) { hintEl.textContent = e.message; }
+        };
+      };
+
+      wrap.querySelectorAll('[data-remove-fase-team]').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/rest/v1/fase_times?id=eq.' + btn.dataset.removeFaseTeam, { method: 'DELETE' });
+            renderFaseDetail(faseId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+      const gerarPartidasBtn = document.getElementById('gerarPartidasBtn');
+      if (gerarPartidasBtn) gerarPartidasBtn.onclick = async () => {
+        const idaVolta = fase.modo_confronto === 'ida_volta';
+        const groupsMap = {};
+        faseTimes.forEach(ft => {
+          const key = fase.tipo === 'grupos' ? (ft.grupo || 'sem_grupo') : 'geral';
+          if (!groupsMap[key]) groupsMap[key] = [];
+          groupsMap[key].push(ft.campeonato_time_id);
+        });
+
+        function gerarRodadas(teamIds) {
+          let list = [...teamIds];
+          if (list.length % 2 !== 0) list.push(null);
+          const n = list.length;
+          const rounds = [];
+          for (let r = 0; r < n - 1; r++) {
+            const pares = [];
+            for (let i = 0; i < n / 2; i++) {
+              const casa = list[i], fora = list[n - 1 - i];
+              if (casa !== null && fora !== null) {
+                pares.push(r % 2 === 1 ? [fora, casa] : [casa, fora]);
+              }
+            }
+            rounds.push(pares);
+            list = [list[0], list[n - 1], ...list.slice(1, n - 1)];
+          }
+          return rounds;
+        }
+
+        const pairExistingCount = {};
+        partidas.forEach(p => {
+          const key = [p.time_casa_id, p.time_visitante_id].sort().join('|');
+          pairExistingCount[key] = (pairExistingCount[key] || 0) + 1;
+        });
+        const pairSeen = {};
+        const toCreate = [];
+
+        Object.values(groupsMap).forEach(teamIds => {
+          if (teamIds.length < 2) return;
+          let rounds = gerarRodadas(teamIds);
+          if (idaVolta) {
+            const volta = rounds.map(round => round.map(([h, a]) => [a, h]));
+            rounds = [...rounds, ...volta];
+          }
+          rounds.forEach((round, idx) => {
+            round.forEach(([casa, fora]) => {
+              const key = [casa, fora].sort().join('|');
+              pairSeen[key] = (pairSeen[key] || 0) + 1;
+              const already = pairExistingCount[key] || 0;
+              if (pairSeen[key] <= already) return;
+              toCreate.push({ campeonato_id: fase.campeonato_id, fase_id: faseId, fase: fase.tipo, time_casa_id: casa, time_visitante_id: fora, rodada: idx + 1 });
+            });
+          });
+        });
+
+        if (!toCreate.length) { document.getElementById('gerarPartidasHint').textContent = 'Todos os confrontos já existem.'; return; }
+        if (!confirm('Isso vai criar ' + toCreate.length + ' partida(s) nova(s), organizadas em rodadas. Continuar?')) return;
+        try {
+          for (const m of toCreate) {
+            await api('/rest/v1/partidas', { method: 'POST', body: JSON.stringify(m) });
+          }
+          renderFaseDetail(faseId);
+        } catch(e) { document.getElementById('gerarPartidasHint').textContent = e.message; }
+      };
+
+      const createMatchBtn = document.getElementById('createMatchBtn');
+      if (createMatchBtn) createMatchBtn.onclick = async () => {
+        const casa = document.getElementById('matchCasa').value;
+        const visitante = document.getElementById('matchVisitante').value;
+        if (casa === visitante) { document.getElementById('matchFormHint').textContent = 'Escolha dois times diferentes.'; return; }
+        let payload = { campeonato_id: fase.campeonato_id, fase_id: faseId, time_casa_id: casa, time_visitante_id: visitante };
+        if (fase.tipo === 'mata_mata') {
+          payload.fase = document.getElementById('matchMataFase').value;
+          payload.rodada = parseInt(document.getElementById('matchSerie').value) || null;
+        } else {
+          payload.fase = fase.tipo;
+          payload.rodada = parseInt(document.getElementById('matchRodada').value) || null;
+        }
+        try {
+          await api('/rest/v1/partidas', { method: 'POST', body: JSON.stringify(payload) });
+          renderFaseDetail(faseId);
+        } catch(e) { document.getElementById('matchFormHint').textContent = e.message; }
+      };
+      wrap.querySelectorAll('[data-delete-partida]').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Excluir esta partida agendada?')) return;
+          try {
+            await api('/rest/v1/partidas?id=eq.' + btn.dataset.deletePartida, { method: 'DELETE' });
+            renderFaseDetail(faseId);
+          } catch(e) { showMsg(e.message, 'error'); }
+        };
+      });
+      wrap.querySelectorAll('.toggle-finalize-btn').forEach(btn => {
+        btn.onclick = () => {
+          const pid = btn.dataset.partida;
+          const formEl = document.getElementById('finalizeForm-' + pid);
+          if (formEl.innerHTML) { formEl.innerHTML = ''; return; }
+          const partida = partidas.find(p => p.id === pid);
+          const rosterCasa = allJogadores.filter(j => j.campeonato_time_id === partida.time_casa_id);
+          const rosterFora = allJogadores.filter(j => j.campeonato_time_id === partida.time_visitante_id);
+          const casaFtWo = faseTimes.find(ft => ft.campeonato_time_id === partida.time_casa_id);
+          const foraFtWo = faseTimes.find(ft => ft.campeonato_time_id === partida.time_visitante_id);
+          formEl.innerHTML = `
+            <div class="form-box" style="margin-top:12px;">
+              <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:13px; color:var(--text);">
+                <input type="checkbox" id="woCheck-${pid}"> Dar W.O. (vitória automática 3 x 0)
+              </label>
+              <div id="woSelectWrap-${pid}" style="display:none; margin-top:10px;">
+                <label>Time vencedor</label>
+                <select id="woVencedor-${pid}" class="role-select" style="width:100%; padding:9px;">
+                  <option value="casa">${casaFtWo ? casaFtWo.campeonato_times.teams.name : 'Time Casa'}</option>
+                  <option value="fora">${foraFtWo ? foraFtWo.campeonato_times.teams.name : 'Time Visitante'}</option>
+                </select>
+              </div>
+              <div id="scoreFieldsWrap-${pid}">
+                <div style="display:flex; gap:12px; align-items:flex-end; margin-top:14px;">
+                  <div><label>Gols Casa</label><input type="text" id="scoreCasa-${pid}" placeholder="0"></div>
+                  <div><label>Gols Visitante</label><input type="text" id="scoreVisitante-${pid}" placeholder="0"></div>
+                </div>
+                ${rosterCasa.length ? `
+                  <div class="hint" style="margin-top:14px; margin-bottom:4px;">Gols marcados (time casa)</div>
+                  ${rosterCasa.map(r => `
+                    <div class="player-row"><span class="pname">${r.profiles.nickname}</span>
+                      <input type="text" style="width:60px;" id="gol-${r.id}" placeholder="0"></div>
+                  `).join('')}
+                ` : ''}
+                ${rosterFora.length ? `
+                  <div class="hint" style="margin-top:14px; margin-bottom:4px;">Gols marcados (time visitante)</div>
+                  ${rosterFora.map(r => `
+                    <div class="player-row"><span class="pname">${r.profiles.nickname}</span>
+                      <input type="text" style="width:60px;" id="gol-${r.id}" placeholder="0"></div>
+                  `).join('')}
+                ` : ''}
+              </div>
+              <button class="btn" id="confirmFinalize-${pid}" style="margin-top:16px;">Confirmar Resultado</button>
+              <div class="hint" id="finalizeHint-${pid}"></div>
+            </div>
+          `;
+          document.getElementById('woCheck-' + pid).onchange = (e) => {
+            document.getElementById('woSelectWrap-' + pid).style.display = e.target.checked ? 'block' : 'none';
+            document.getElementById('scoreFieldsWrap-' + pid).style.display = e.target.checked ? 'none' : 'block';
+          };
+          document.getElementById('confirmFinalize-' + pid).onclick = async () => {
+            const isWo = document.getElementById('woCheck-' + pid).checked;
+            let golsCasa, golsVisitante, scorers = [];
+            if (isWo) {
+              const vencedor = document.getElementById('woVencedor-' + pid).value;
+              golsCasa = vencedor === 'casa' ? 3 : 0;
+              golsVisitante = vencedor === 'fora' ? 3 : 0;
+            } else {
+              golsCasa = parseInt(document.getElementById('scoreCasa-' + pid).value) || 0;
+              golsVisitante = parseInt(document.getElementById('scoreVisitante-' + pid).value) || 0;
+              [...rosterCasa, ...rosterFora].forEach(r => {
+                const val = parseInt((document.getElementById('gol-' + r.id) || {}).value) || 0;
+                if (val > 0) scorers.push({ campeonato_jogador_id: r.id, profile_id: r.profile_id, quantidade: val });
+              });
+            }
+            try {
+              await api('/rest/v1/partidas?id=eq.' + pid, { method: 'PATCH', body: JSON.stringify({ gols_casa: golsCasa, gols_visitante: golsVisitante, status: 'finalizada', wo: isWo }) });
+              for (const s of scorers) {
+                await api('/rest/v1/partida_gols', { method: 'POST', body: JSON.stringify({ partida_id: pid, campeonato_jogador_id: s.campeonato_jogador_id, quantidade: s.quantidade }) });
+              }
+              await applyMatchResult(rosterCasa, rosterFora, golsCasa, golsVisitante, scorers);
+
+              await api('/rest/v1/campeonatos?id=eq.' + fase.campeonato_id + '&status=eq.em_montagem', { method: 'PATCH', body: JSON.stringify({ status: 'em_andamento' }) });
+
+              if (fase.tipo === 'mata_mata') {
+                let vencedorId = null, perdedorId = null, targetId = partida.proxima_partida_id, targetSlot = partida.proxima_partida_slot;
+                if (!partida.perna) {
+                  if (golsCasa !== golsVisitante) {
+                    vencedorId = golsCasa > golsVisitante ? partida.time_casa_id : partida.time_visitante_id;
+                    perdedorId = vencedorId === partida.time_casa_id ? partida.time_visitante_id : partida.time_casa_id;
+                  }
+                } else {
+                  const siblingRows = await api('/rest/v1/partidas?fase_id=eq.' + faseId + '&fase=eq.' + partida.fase + '&rodada=eq.' + partida.rodada + '&id=neq.' + pid + '&select=*', { headers: {} });
+                  const sibling = siblingRows[0];
+                  if (sibling && sibling.status === 'finalizada') {
+                    const idaLeg = partida.perna === 'ida' ? { time_casa_id: partida.time_casa_id, time_visitante_id: partida.time_visitante_id, gols_casa: golsCasa, gols_visitante: golsVisitante } : sibling;
+                    const voltaLeg = partida.perna === 'volta' ? { gols_casa: golsCasa, gols_visitante: golsVisitante } : sibling;
+                    const timeA = idaLeg.time_casa_id, timeB = idaLeg.time_visitante_id;
+                    const totalA = idaLeg.gols_casa + voltaLeg.gols_visitante;
+                    const totalB = idaLeg.gols_visitante + voltaLeg.gols_casa;
+                    if (totalA !== totalB) {
+                      vencedorId = totalA > totalB ? timeA : timeB;
+                      perdedorId = vencedorId === timeA ? timeB : timeA;
+                    }
+                  }
+                }
+                if (vencedorId) {
+                  if (targetId) {
+                    const slotField = targetSlot === 'casa' ? 'time_casa_id' : 'time_visitante_id';
+                    await api('/rest/v1/partidas?id=eq.' + targetId, { method: 'PATCH', body: JSON.stringify({ [slotField]: vencedorId }) });
+                    if (fase.modo_confronto === 'ida_volta') {
+                      const targetRow = (await api('/rest/v1/partidas?id=eq.' + targetId + '&select=*', { headers: {} }))[0];
+                      const oppositeField = targetSlot === 'casa' ? 'time_visitante_id' : 'time_casa_id';
+                      await api('/rest/v1/partidas?fase_id=eq.' + targetRow.fase_id + '&fase=eq.' + targetRow.fase + '&rodada=eq.' + targetRow.rodada + '&perna=eq.volta', { method: 'PATCH', body: JSON.stringify({ [oppositeField]: vencedorId }) });
+                    }
+                  } else if (partida.fase === 'final') {
+                    await registrarTitulos(fase.campeonato_id, campNomeEdicao, vencedorId, perdedorId, allJogadores);
+                  }
+                }
+              }
+              renderFaseDetail(faseId);
+
+              const casaFtNews = faseTimes.find(ft => ft.campeonato_time_id === partida.time_casa_id);
+              const foraFtNews = faseTimes.find(ft => ft.campeonato_time_id === partida.time_visitante_id);
+              const artilheiros = scorers.map(s => {
+                const jogador = [...rosterCasa, ...rosterFora].find(r => r.id === s.campeonato_jogador_id);
+                return { nome: jogador ? jogador.profiles.nickname : '?', gols: s.quantidade };
+              });
+              const faseLabelNews = fase.tipo === 'mata_mata' ? FASE_MATA_LABELS[partida.fase] : FASE_TIPO_LABELS[fase.tipo];
+              gerarNoticiaPartida(
+                fase.campeonato_id, pid,
+                casaFtNews ? casaFtNews.campeonato_times.teams.name : 'Time Casa',
+                foraFtNews ? foraFtNews.campeonato_times.teams.name : 'Time Visitante',
+                golsCasa, golsVisitante, faseLabelNews, artilheiros
+              );
+            } catch(e) { document.getElementById('finalizeHint-' + pid).textContent = e.message; }
+          };
+        };
+      });
+    }
+  } catch(e) {
+    document.getElementById('faseDetailWrap').textContent = 'Erro ao carregar fase: ' + e.message;
+  }
+}
+
+// ---------- RENDER: DASHBOARD ----------
+async function renderDashboardView() {
+  app.innerHTML = sidebarHtml('dashboard') + `
+    <div class="main-content">
+      <div class="who-name" style="font-size:22px; margin-bottom:2px;">T07</div>
+      <div class="hint" style="margin-bottom:16px;">A T07 organiza campeonatos competitivos de futebol virtual, reunindo comunidades de PES 2021, PES 2017, FIFA 14 e outros títulos em disputas organizadas e atualizadas em tempo real.</div>
+      <div id="dashChampionWrap"><div class="hint">Carregando...</div></div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="section-title" style="margin-top:0;">Última Notícia</div>
+          <div id="dashNoticiaWrap"><div class="hint">Carregando...</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title" style="margin-top:0;">Top 5 Jogadores</div>
+          <div id="dashTop5Wrap"><div class="hint">Carregando...</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+  wireSidebar();
+  try {
+    const noticias = await api('/rest/v1/noticias?select=*&order=created_at.desc&limit=1', { headers: {} });
+    const nWrap = document.getElementById('dashNoticiaWrap');
+    nWrap.innerHTML = noticias.length
+      ? `<b style="font-family:'Oswald',sans-serif; font-size:15px;">${noticias[0].titulo}</b><p style="color:var(--text-dim); font-size:13px; line-height:1.6; margin-top:8px;">${noticias[0].conteudo}</p>`
+      : '<div class="hint">Nenhuma notícia ainda.</div>';
+  } catch(e) { document.getElementById('dashNoticiaWrap').textContent = 'Erro ao carregar notícia.'; }
+  try {
+    const jogadoresTop5 = await api('/rest/v1/profiles?select=*', { headers: {} });
+    const top5 = jogadoresTop5.map(j => Object.assign({}, j, { pts: calcPontosRanking(j) }))
+      .sort((a,b) => b.pts - a.pts || (b.gols||0) - (a.gols||0))
+      .slice(0, 5);
+    document.getElementById('dashTop5Wrap').innerHTML = top5.length ? top5.map((j,i) => `
+      <div class="player-row"><b style="width:18px;">${i+1}</b><img src="${avatarUrl(j.avatar_url)}"><span class="pname">${j.nickname}</span><span class="hint">${j.pts} pts</span></div>
+    `).join('') : '<div class="hint">Nenhum dado de ranking ainda.</div>';
+  } catch(e) { document.getElementById('dashTop5Wrap').textContent = 'Erro ao carregar ranking.'; }
+  try {
+    const ultimoTitulo = await api('/rest/v1/titulos_jogadores?tipo=eq.campeao&select=*,profiles(nickname,avatar_url)&order=created_at.desc&limit=1', { headers: {} });
+    const champWrap = document.getElementById('dashChampionWrap');
+    if (!ultimoTitulo.length) {
+      champWrap.innerHTML = `<div class="card" style="margin-bottom:24px; text-align:center;"><div class="hint">Ainda não temos um campeão definido. Assim que uma temporada terminar, o mais recente aparece aqui.</div></div>`;
+    } else {
+      const t = ultimoTitulo[0];
+      champWrap.innerHTML = `
+        <div class="champion-banner">
+          <img src="${avatarUrl(t.profiles.avatar_url)}">
+          <div>
+            <span class="champion-tag">🏆 Novo Campeão</span>
+            <div class="who-name" style="font-size:22px;">${t.nome_edicao}</div>
+            <div class="hint" style="margin-top:2px;">${t.profiles.nickname} e o elenco campeão</div>
+          </div>
+        </div>
+      `;
+    }
+  } catch(e) {
+    document.getElementById('dashChampionWrap').textContent = 'Erro ao carregar campeão: ' + e.message;
+  }
+}
+
+// ---------- RENDER: JOGADORES ----------
+async function renderJogadoresView() {
+  app.innerHTML = sidebarHtml('jogadores') + `
+    <div class="main-content">
+      <div class="who-name" style="font-size:22px;">Jogadores Cadastrados</div>
+      <div class="hint" style="margin-bottom:14px;">Visualize todos os jogadores da T07</div>
+      <input type="text" id="jogadoresSearch" placeholder="Buscar por nickname ou Discord..." style="max-width:340px; margin-bottom:20px;">
+      <div id="jogadoresGridWrap" class="player-grid"><div class="hint">Carregando...</div></div>
+    </div>
+  `;
+  wireSidebar();
+  try {
+    const jogadores = await api('/rest/v1/profiles?select=*&order=vitorias.desc', { headers: {} });
+    function renderLista(lista) {
+      const gridWrap = document.getElementById('jogadoresGridWrap');
+      if (!lista.length) { gridWrap.innerHTML = '<div class="hint">Nenhum jogador encontrado.</div>'; return; }
+      gridWrap.innerHTML = lista.map(j => `
+        <div class="player-card">
+          <img src="${avatarUrl(j.avatar_url)}">
+          <div class="pn">${j.nickname}</div>
+          <div class="pd">${j.discord}</div>
+          <div class="pstats">
+            <div><b>${(j.vitorias||0)+(j.empates||0)+(j.derrotas||0)}</b><span>Partidas</span></div>
+            <div><b>${j.titulos||0}</b><span>Títulos</span></div>
+          </div>
+          <button class="btn secondary ver-perfil-btn" data-jogador="${j.id}" style="margin-top:12px; padding:8px;">Ver Perfil</button>
+        </div>
+      `).join('');
+      gridWrap.querySelectorAll('.ver-perfil-btn').forEach(btn => btn.onclick = () => {
+        selectedJogadorPerfilId = btn.dataset.jogador;
+        currentView = 'jogador-perfil';
+        renderCurrentView();
+      });
+    }
+    renderLista(jogadores);
+    document.getElementById('jogadoresSearch').oninput = (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderLista(jogadores.filter(j => j.nickname.toLowerCase().includes(q) || j.discord.toLowerCase().includes(q)));
+    };
+  } catch(e) {
+    document.getElementById('jogadoresGridWrap').textContent = 'Erro ao carregar jogadores: ' + e.message;
+  }
+}
+
+// ---------- RENDER: RANKING ----------
+async function renderRankingView() {
+  app.innerHTML = sidebarHtml('ranking') + `
+    <div class="main-content">
+      <div class="card">
+        <div class="who-name" style="font-size:22px;">Ranking Geral</div>
+        <div class="hint" style="margin-bottom:16px;">Pontuação: vitória (3), empate (1), derrota (-2), título (+50), vice (+25)</div>
+        <div id="rankingWrap">Carregando...</div>
+      </div>
+    </div>
+  `;
+  wireSidebar();
+  try {
+    const jogadores = await api('/rest/v1/profiles?select=*', { headers: {} });
+    const ranked = jogadores.map(j => ({
+      ...j,
+      pts: calcPontosRanking(j)
+    })).sort((a,b) => b.pts - a.pts || (b.gols||0) - (a.gols||0));
+    document.getElementById('rankingWrap').innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>Jogador</th><th>PTS</th><th>V</th><th>E</th><th>D</th><th>Gols</th><th>Títulos</th></tr></thead>
+        <tbody>
+          ${ranked.map((j,i) => `
+            <tr>
+              <td>${i+1}</td>
+              <td><img class="row-avatar" src="${avatarUrl(j.avatar_url)}">${j.nickname}</td>
+              <td style="color:var(--green-bright); font-family:'JetBrains Mono',monospace;">${j.pts}</td>
+              <td>${j.vitorias||0}</td><td>${j.empates||0}</td><td>${j.derrotas||0}</td><td>${j.gols||0}</td><td>${j.titulos||0}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch(e) {
+    document.getElementById('rankingWrap').textContent = 'Erro ao carregar ranking: ' + e.message;
+  }
+}
+
+// ---------- RENDER: TÍTULOS ----------
+async function renderTitulosView() {
+  app.innerHTML = sidebarHtml('titulos') + `
+    <div class="main-content">
+      <div class="who-name" style="font-size:22px;">Campeões da T07</div>
+      <div class="hint" style="margin-bottom:20px;">Hall da fama de títulos e vices</div>
+      <div id="titulosWrap"><div class="hint">Carregando...</div></div>
+    </div>
+  `;
+  wireSidebar();
+  try {
+    const registros = await api('/rest/v1/titulos_jogadores?select=*,profiles(nickname,avatar_url)&order=created_at.desc', { headers: {} });
+    const wrap = document.getElementById('titulosWrap');
+    if (!registros.length) { wrap.innerHTML = '<div class="hint">Nenhum título conquistado ainda. Quando uma temporada for encerrada com um campeão definido, ele aparece aqui automaticamente.</div>'; return; }
+    wrap.innerHTML = registros.map(r => `
+      <div class="titulo-card" data-titulo="${r.id}" data-profile="${r.profile_id}" data-tipo="${r.tipo}">
+        <img class="avatar" src="${avatarUrl(r.profiles.avatar_url)}">
+        <div style="flex:1;">
+          <b style="font-family:'Oswald',sans-serif;">${r.profiles.nickname}</b>
+          <div class="hint">${r.nome_edicao}</div>
+        </div>
+        <span class="status-pill ${r.tipo === 'campeao' ? 'em_andamento' : ''}">${r.tipo === 'campeao' ? '🏆 Campeão' : '🥈 Vice'}</span>
+        ${profile.role === 'admin' ? `<button class="icon-btn" data-remove-titulo="${r.id}" style="margin-left:12px;">Remover</button>` : ''}
+      </div>
+    `).join('');
+    if (profile.role === 'admin') {
+      wrap.querySelectorAll('[data-remove-titulo]').forEach(btn => {
+        btn.onclick = async () => {
+          const card = btn.closest('.titulo-card');
+          const tituloId = card.dataset.titulo, profileId = card.dataset.profile, tipo = card.dataset.tipo;
+          if (!confirm('Remover esse ' + (tipo === 'campeao' ? 'título' : 'vice') + ' e descontar o ponto do jogador no ranking?')) return;
+          try {
+            const campo = tipo === 'campeao' ? 'titulos' : 'vices';
+            const rows = await api('/rest/v1/profiles?id=eq.' + profileId + '&select=' + campo, { headers: {} });
+            const atual = rows[0] ? (rows[0][campo] || 0) : 0;
+            await api('/rest/v1/profiles?id=eq.' + profileId, { method: 'PATCH', body: JSON.stringify({ [campo]: Math.max(0, atual - 1) }) });
+            await api('/rest/v1/titulos_jogadores?id=eq.' + tituloId, { method: 'DELETE' });
+            renderTitulosView();
+          } catch(e) { alert('Erro ao remover: ' + e.message); }
+        };
+      });
+    }
+  } catch(e) {
+    document.getElementById('titulosWrap').textContent = 'Erro ao carregar títulos: ' + e.message;
+  }
+}
+
+// ---------- RENDER: PARTIDAS PENDENTES ----------
+async function renderPartidasPendentesView() {
+  app.innerHTML = sidebarHtml('partidas') + `
+    <div class="main-content">
+      <div class="who-name" style="font-size:22px;">Suas Partidas Pendentes</div>
+      <div class="hint" style="margin-bottom:20px;">Jogos agendados dos times em que você está escalado, ainda não finalizados</div>
+      <div id="partidasPendentesWrap"><div class="hint">Carregando...</div></div>
+    </div>
+  `;
+  wireSidebar();
+  try {
+    const myRoster = await api('/rest/v1/campeonato_jogadores?profile_id=eq.' + session.user.id + '&select=campeonato_time_id', { headers: {} });
+    const wrap = document.getElementById('partidasPendentesWrap');
+    if (!myRoster.length) { wrap.innerHTML = '<div class="hint">Você ainda não está escalado em nenhum time de campeonato.</div>'; return; }
+    const ids = myRoster.map(r => r.campeonato_time_id);
+    const partidas = await api('/rest/v1/partidas?status=eq.agendada&or=(time_casa_id.in.(' + ids.join(',') + '),time_visitante_id.in.(' + ids.join(',') + '))&select=*', { headers: {} });
+    if (!partidas.length) { wrap.innerHTML = '<div class="hint">Nenhuma partida pendente. Você está em dia!</div>'; return; }
+    const allCtIds = [...new Set(partidas.flatMap(p => [p.time_casa_id, p.time_visitante_id]))];
+    const cts = await api('/rest/v1/campeonato_times?id=in.(' + allCtIds.join(',') + ')&select=id,teams(name,escudo_url)', { headers: {} });
+    const ctMap = {}; cts.forEach(c => ctMap[c.id] = c.teams);
+    wrap.innerHTML = partidas.map(p => `
+      <div class="match-card">
+        <div class="match-row">
+          <img class="badge-team" src="${teamLogoUrl(ctMap[p.time_casa_id] ? ctMap[p.time_casa_id].escudo_url : null)}">
+          <span class="mc-name">${ctMap[p.time_casa_id] ? ctMap[p.time_casa_id].name : '?'}</span>
+          <span class="score">vs</span>
+          <span class="mc-name">${ctMap[p.time_visitante_id] ? ctMap[p.time_visitante_id].name : '?'}</span>
+          <img class="badge-team" src="${teamLogoUrl(ctMap[p.time_visitante_id] ? ctMap[p.time_visitante_id].escudo_url : null)}">
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('partidasPendentesWrap').textContent = 'Erro ao carregar partidas: ' + e.message;
+  }
+}
+
+const FLATKEY_API_KEY = "sk-LfzJuZUmjUkfAolcBLFalg3WzJC05QngSabgS0DmviPmsjno";
+
+async function gerarNoticiaPartida(campeonatoId, partidaId, nomeCasa, nomeFora, golsCasa, golsVisitante, faseLabel, artilheiros) {
+  try {
+    const artilheirosTxt = artilheiros.length ? artilheiros.map(a => a.nome + ' (' + a.gols + ')').join(', ') : 'nenhum artilheiro registrado';
+    const prompt = `Você é o redator esportivo do site de e-sports "T07". Escreva uma notícia curta (3 a 5 frases) em português, tom empolgante de jornalismo esportivo, sobre esta partida que acabou de ser finalizada:
+Confronto: ${nomeCasa} ${golsCasa} x ${golsVisitante} ${nomeFora}
+Fase: ${faseLabel}
+Artilheiros: ${artilheirosTxt}
+Responda APENAS em JSON puro, sem markdown, sem crases, no formato exato: {"titulo": "...", "conteudo": "..."}`;
+    const response = await fetch('https://router.flatkey.ai/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': FLATKEY_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await response.json();
+    const texto = (data.content || []).map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(texto);
+    await api('/rest/v1/noticias', {
+      method: 'POST',
+      body: JSON.stringify({ campeonato_id: campeonatoId, partida_id: partidaId, titulo: parsed.titulo, conteudo: parsed.conteudo })
+    });
+  } catch(e) {
+    console.warn('Não foi possível gerar a notícia automática:', e.message);
+  }
+}
+
+// ---------- RENDER: NOTÍCIAS ----------
+async function renderNoticiasView() {
+  app.innerHTML = sidebarHtml('noticias') + `
+    <div class="main-content">
+      <div class="who-name" style="font-size:22px;">Notícias</div>
+      <div class="hint" style="margin-bottom:20px;">Geradas automaticamente a cada partida finalizada</div>
+      <div id="noticiasWrap"><div class="hint">Carregando...</div></div>
+    </div>
+  `;
+  wireSidebar();
+  try {
+    const noticias = await api('/rest/v1/noticias?select=*&order=created_at.desc', { headers: {} });
+    const wrap = document.getElementById('noticiasWrap');
+    if (!noticias.length) { wrap.innerHTML = '<div class="hint">Nenhuma notícia ainda.</div>'; return; }
+    wrap.innerHTML = noticias.map(n => `
+      <div class="card" style="margin-bottom:14px;">
+        <b style="font-family:'Oswald',sans-serif; font-size:16px;">${n.titulo}</b>
+        <p style="color:var(--text-dim); font-size:13px; line-height:1.6; margin-top:8px;">${n.conteudo}</p>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('noticiasWrap').textContent = 'Erro ao carregar notícias: ' + e.message;
+  }
+}
+
+// ---------- RENDER: PERFIL PÚBLICO DO JOGADOR ----------
+async function renderJogadorPerfilView(jogadorId) {
+  app.innerHTML = sidebarHtml('jogadores') + `
+    <div class="main-content">
+      <div class="back-link" id="backToJogadores">&larr; Voltar para Jogadores</div>
+      <div id="jogadorPerfilWrap"><div class="hint">Carregando...</div></div>
+    </div>
+  `;
+  wireSidebar();
+  document.getElementById('backToJogadores').onclick = () => { currentView = 'jogadores'; renderCurrentView(); };
+
+  try {
+    const rows = await api('/rest/v1/profiles?id=eq.' + jogadorId + '&select=*', { headers: {} });
+    const j = rows[0];
+    const titulosList = await api('/rest/v1/titulos_jogadores?profile_id=eq.' + jogadorId + '&select=*&order=created_at.desc', { headers: {} });
+    const maxGolsPartida = await getMaxGolsPartida(jogadorId);
+    const stats = { partidas: (j.vitorias||0)+(j.empates||0)+(j.derrotas||0), gols: j.gols||0, titulos: j.titulos||0, maxGolsPartida };
+    const wrap = document.getElementById('jogadorPerfilWrap');
+    wrap.innerHTML = `
+      <div class="card" style="text-align:center; margin-bottom:24px;">
+        <img class="avatar" src="${avatarUrl(j.avatar_url)}" style="width:88px; height:88px; border-radius:50%; margin:0 auto 14px;">
+        <div class="who-name" style="font-size:22px;">${j.nickname}</div>
+        <div class="hint" style="margin-bottom:6px;"># ${j.discord}</div>
+        <span class="badge ${j.role}">${j.role === 'admin' ? 'ADMINISTRADOR' : 'JOGADOR'}</span>
+        <div class="stat-grid" style="grid-template-columns:repeat(6,1fr); margin-top:22px;">
+          <div class="stat-tile"><b>${j.vitorias || 0}</b><span>Vitórias</span></div>
+          <div class="stat-tile"><b>${j.empates || 0}</b><span>Empates</span></div>
+          <div class="stat-tile"><b>${j.derrotas || 0}</b><span>Derrotas</span></div>
+          <div class="stat-tile"><b>${j.gols || 0}</b><span>Gols</span></div>
+          <div class="stat-tile"><b>${j.titulos || 0}</b><span>Títulos</span></div>
+          <div class="stat-tile"><b>${j.vices || 0}</b><span>Vices</span></div>
+        </div>
+      </div>
+      ${titulosList.length ? `
+        <div class="card" style="margin-bottom:24px;">
+          <div class="section-title" style="margin-top:0;">Histórico de Títulos</div>
+          ${titulosList.map(t => `
+            <div class="titulo-card">
+              <div style="flex:1;">
+                <b style="font-family:'Oswald',sans-serif;">${t.nome_edicao}</b>
+              </div>
+              <span class="status-pill ${t.tipo === 'campeao' ? 'em_andamento' : ''}">${t.tipo === 'campeao' ? '🏆 Campeão' : '🥈 Vice'}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Conquistas</div>
+        ${conquistasGridHtml(computeConquistas(stats))}
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('jogadorPerfilWrap').textContent = 'Erro ao carregar perfil: ' + e.message;
+  }
+}
+
+function renderCurrentView() {
+  if (currentView === 'times') renderTeamsView();
+  else if (currentView === 'team-detail') renderTeamDetail(selectedTeamId);
+  else if (currentView === 'campeonatos') renderCampeonatosView();
+  else if (currentView === 'campeonato-detail') renderCampeonatoDetail(selectedCampeonatoId);
+  else if (currentView === 'fase-detail') renderFaseDetail(selectedFaseId);
+  else if (currentView === 'dashboard') renderDashboardView();
+  else if (currentView === 'jogadores') renderJogadoresView();
+  else if (currentView === 'ranking') renderRankingView();
+  else if (currentView === 'titulos') renderTitulosView();
+  else if (currentView === 'partidas') renderPartidasPendentesView();
+  else if (currentView === 'noticias') renderNoticiasView();
+  else if (currentView === 'jogador-perfil') renderJogadorPerfilView(selectedJogadorPerfilId);
+  else renderProfileView();
+}
+
+function render() {
+  if (session && profile) { document.body.className = 'mode-dash'; renderCurrentView(); }
+  else if (session && !profile) renderCompleteProfile();
+  else renderAuth('login');
+}
+
+(async () => {
+  await tryRestoreSession();
+  render();
+})();
+</script>
+</body>
+</html>
